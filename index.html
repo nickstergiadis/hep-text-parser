@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEP Text Parser</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>HEP Text Parser</h1>
+    <p>Paste a home exercise program below and parse it into structured items.</p>
+
+    <div class="card">
+      <label for="inputText"><strong>Paste HEP text</strong></label>
+      <textarea id="inputText" rows="16" placeholder="Example:
+1) Pelvic Tilts – 2 x 10, 3-second holds
+2) Bridge – 3 x 8
+3) Calf Stretch – 2 x 30s each side
+Frequency: daily"></textarea>
+
+      <div class="button-row">
+        <button id="sampleBtn">Load sample</button>
+        <button id="parseBtn">Parse</button>
+        <button id="copyJsonBtn">Copy JSON</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Parsed Results</h2>
+      <div id="results"></div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
