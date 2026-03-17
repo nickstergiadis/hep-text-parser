@@ -1,0 +1,15 @@
+PATCH NOTES
+
+This patched build corrects the prior issue where the preview only rendered exercise names and dosage.
+
+Fixes included:
+- instruction templates now render in the preview
+- editable exercise cards now appear above the preview
+- copied summary includes instructions
+- email draft includes instructions
+- local matching covers common exercises and abbreviations such as SLS
+
+Still not included:
+- live AI model integration
+- automatic image assignment
+- backend email sending
