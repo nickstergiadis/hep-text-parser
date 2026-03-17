@@ -1,14 +1,13 @@
 /*
- * HEP Program Generator
+ * HEP Program Generator (with video links)
  *
  * This script powers the web app for building home exercise programs from a rough list of
  * exercises. It performs basic parsing of clinician shorthand, looks up default
  * instructions and video links for recognised exercises, and renders editable
- * forms and a patient‑friendly preview. Users can then print a PDF, copy a
+ * forms and a patient-friendly preview. Users can then print a PDF, copy a
  * summary or open an email draft.
  */
 
-// An exercise library with aliases, display names, detailed instructions and video links.
 const EXERCISE_LIBRARY = [
   {
     key: 'leg_press',
@@ -366,23 +365,18 @@ function renderPreview() {
     const card = document.createElement('div');
     card.className = 'exercise-card';
     const dose = buildDoseString(ex);
-    let nameHtml;
-    if (ex.video) {
-      const linkUrl = ex.video;
-      nameHtml = `<a href="${escapeHtml(linkUrl)}" target="_blank">${escapeHtml(ex.name)}</a>`;
-    } else {
-      nameHtml = escapeHtml(ex.name);
-    }
-    const instructionsHtml = ex.instructions
-      .map(step => `<li>${escapeHtml(step)}</li>`)
-      .join('');
+    const nameHtml = escapeHtml(ex.name);
+    const instructionsHtml = ex.instructions.map(step => `<li>${escapeHtml(step)}</li>`).join('');
     const notesHtml = ex.notes ? `<p class="exercise-notes"><strong>Notes:</strong> ${escapeHtml(ex.notes)}</p>` : '';
+    const videoHtml = ex.video ? `<p class="exercise-video"><a href="${escapeHtml(ex.video)}" target="_blank">Video demo</a></p>` : '';
+
     card.innerHTML = `
       <div class="exercise-top">
         <div><p class="exercise-name">${index + 1}. ${nameHtml}</p></div>
         <div class="exercise-dose">${escapeHtml(dose)}</div>
       </div>
       <ul class="exercise-instructions">${instructionsHtml}</ul>
+      ${videoHtml}
       ${notesHtml}
     `;
     previewExercises.appendChild(card);
@@ -392,10 +386,9 @@ function renderPreview() {
   previewSection.style.display = '';
 }
 
-// Build and open email draft
+// Build and open email draft (includes video links)
 function openEmailDraft() {
   renderPreview();
-
   const recipient = document.getElementById('recipientEmail').value.trim();
   if (!recipient) {
     alert('Please enter a recipient email first.');
@@ -408,8 +401,9 @@ function openEmailDraft() {
   const subject = `${title}${date ? ' - ' + date : ''}`;
   const summaryLines = editableExercises.map((ex, i) => {
     const dose = buildDoseString(ex);
+    const videoPart = ex.video ? ` (Video: ${ex.video})` : '';
     const notesPart = ex.notes ? ` | Notes: ${ex.notes}` : '';
-    return `${i + 1}. ${ex.name}${dose ? ' — ' + dose : ''}${notesPart}`;
+    return `${i + 1}. ${ex.name}${dose ? ' — ' + dose : ''}${videoPart}${notesPart}`;
   });
   const bodyLines = [
     `Hello ${patient},`,
@@ -431,7 +425,7 @@ function openEmailDraft() {
   window.location.href = mailto;
 }
 
-// Copy program summary to clipboard
+// Copy program summary to clipboard (includes video links)
 async function copySummary() {
   renderPreview();
   const title = document.getElementById('programTitle').value.trim() || 'Home Exercise Program';
@@ -450,8 +444,9 @@ async function copySummary() {
   ];
   editableExercises.forEach((ex, i) => {
     const dose = buildDoseString(ex);
+    const videoPart = ex.video ? ` (Video: ${ex.video})` : '';
     const notesPart = ex.notes ? ` | Notes: ${ex.notes}` : '';
-    lines.push(`${i + 1}. ${ex.name}${dose ? ' — ' + dose : ''}${notesPart}`);
+    lines.push(`${i + 1}. ${ex.name}${dose ? ' — ' + dose : ''}${videoPart}${notesPart}`);
   });
   try {
     await navigator.clipboard.writeText(lines.filter(Boolean).join('\\n'));
@@ -477,7 +472,16 @@ function init() {
     document.getElementById('recipientEmail').value = 'patient@example.com';
     document.getElementById('programTitle').value = 'Home Exercise Program';
     document.getElementById('introText').value = 'Perform the following exercises as prescribed. Stop and contact your physiotherapist if symptoms significantly worsen.';
-    document.getElementById('inputText').value = `leg press 3x10 hold 5 sec\\nSLS 2x15\\njumping jacks 30s different intensities\\ncalf stretch 2x30s each side\\nbridge 3x12\\nclamshell 2x15 each side\\nwall sit 3x30s\\nseated row 2x15\\nlateral walk 2x10 each way\\npush up 3x8`;
+    document.getElementById('inputText').value = `leg press 3x10 hold 5 sec
+SLS 2x15
+jumping jacks 30s different intensities
+calf stretch 2x30s each side
+bridge 3x12
+clamshell 2x15 each side
+wall sit 3x30s
+seated row 2x15
+lateral walk 2x10 each way
+push up 3x8`;
   });
 
   document.getElementById('generateExercisesBtn').addEventListener('click', () => {
