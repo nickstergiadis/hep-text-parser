@@ -3,77 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HEP Builder Pro</title>
+  <title>HEP Program Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
-    <section class="panel">
-      <h1>HEP Builder Pro</h1>
-      <p class="subtitle">Paste rough exercise shorthand, generate editable instructions, then export as PDF or email draft.</p>
+    <!-- App Header and introduction -->
+    <section class="intro-card card">
+      <h1>Home Exercise Program Generator</h1>
+      <p class="subtitle">A simple, free tool for physiotherapists and trainers to build polished home exercise programs from rough notes.</p>
+      <details>
+        <summary>How it works</summary>
+        <ol>
+          <li>Enter the patient details and optional program title/date.</li>
+          <li>Paste your rough exercise list in plain language (e.g. “leg press 3x10 hold 5&nbsp;sec”).</li>
+          <li>Click <strong>Generate Exercises</strong> to convert your notes into editable exercise cards.</li>
+          <li>Review or adjust the dosage, instructions, notes and video links for each exercise.</li>
+          <li>Once satisfied, click <strong>Preview Program</strong> to see a patient‑ready layout.</li>
+          <li>Finally, download/print as a PDF, copy a summary, or open an email draft to send directly to your client.</li>
+        </ol>
+      </details>
+    </section>
 
-      <div class="form-grid">
-        <div class="field">
+    <!-- Patient and program details input -->
+    <section class="card">
+      <h2>Step 1: Program details</h2>
+      <div class="grid">
+        <div>
           <label for="patientName">Patient name</label>
-          <input id="patientName" type="text" placeholder="Patient name" />
+          <input id="patientName" type="text" placeholder="e.g. John Smith" />
         </div>
-        <div class="field">
+        <div>
           <label for="recipientEmail">Recipient email</label>
-          <input id="recipientEmail" type="email" placeholder="patient@email.com" />
+          <input id="recipientEmail" type="email" placeholder="e.g. patient@email.com" />
         </div>
-        <div class="field">
+        <div>
           <label for="programTitle">Program title</label>
           <input id="programTitle" type="text" value="Home Exercise Program" />
         </div>
-        <div class="field">
+        <div>
           <label for="programDate">Date</label>
           <input id="programDate" type="date" />
         </div>
       </div>
-
-      <div class="field">
-        <label for="introText">Intro / instructions</label>
-        <textarea id="introText" rows="3">Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.</textarea>
+      <div class="field-block">
+        <label for="introText">Intro / instructions for the patient</label>
+        <textarea id="introText" rows="3">Perform the following exercises as prescribed. Stop and contact your physiotherapist if symptoms significantly worsen.</textarea>
       </div>
+    </section>
 
-      <div class="field">
-        <label for="inputText">Paste HEP text</label>
-        <textarea id="inputText" rows="7" placeholder="leg press 3x10 hold 5 sec
-SLS 2x15
-jumping jacks 30s different intensities
-calf stretch 2x30s each side
-bridge with band 3x12
-Frequency: daily"></textarea>
+    <!-- Exercise input -->
+    <section class="card">
+      <h2>Step 2: Paste your exercise list</h2>
+      <textarea id="inputText" rows="8" placeholder="Enter one exercise per line. Example:&#10;leg press 3x10 hold 5 sec&#10;SLS 2x15&#10;jumping jacks 30s different intensities&#10;calf stretch 2x30s each side"></textarea>
+      <div class="button-row">
+        <button id="loadSampleBtn" type="button">Load sample</button>
+        <button id="generateExercisesBtn" type="button">Generate Exercises</button>
       </div>
+    </section>
 
-      <div class="button-row no-print">
-        <button id="sampleBtn" type="button">Load sample</button>
-        <button id="generateBtn" type="button">Generate Program</button>
+    <!-- Editable exercise cards (initially hidden) -->
+    <section id="editableSection" class="card" style="display:none">
+      <h2>Step 3: Edit exercises</h2>
+      <p class="helper-text">Review and edit the details below. You can adjust the exercise name, dosage, instructions, notes or video link before generating the final program.</p>
+      <div id="editableExercises"></div>
+      <div class="button-row">
+        <button id="previewProgramBtn" type="button">Preview Program</button>
+      </div>
+    </section>
+
+    <!-- Program preview (initially hidden) -->
+    <section id="previewSection" class="program-card card" style="display:none">
+      <h2>Step 4: Program preview</h2>
+      <div class="program-header">
+        <div>
+          <h3 id="previewTitle"></h3>
+          <p id="previewPatient" class="muted"></p>
+          <p id="previewDate" class="muted"></p>
+        </div>
+      </div>
+      <div class="intro-box">
+        <p id="previewIntro"></p>
+      </div>
+      <div id="previewExercises" class="exercise-list"></div>
+      <div class="button-row">
         <button id="printBtn" type="button">Download / Print PDF</button>
         <button id="emailBtn" type="button">Open Email Draft</button>
         <button id="copySummaryBtn" type="button">Copy Summary</button>
-      </div>
-    </section>
-
-    <section class="panel no-print">
-      <h2>Editable Exercises</h2>
-      <p class="subtitle">Adjust names, dosage, instructions, and notes before sending.</p>
-      <div id="editorList">
-        <p class="empty">Generate a program to edit exercises.</p>
-      </div>
-    </section>
-
-    <section class="panel" id="previewPanel">
-      <h2 id="previewTitle">Home Exercise Program</h2>
-      <p class="meta" id="previewPatient">Patient: —</p>
-      <p class="meta" id="previewDate">Date: —</p>
-
-      <div class="intro-box" id="previewIntroBox">
-        <p id="previewIntro">Perform the following exercises as prescribed.</p>
-      </div>
-
-      <div id="previewList">
-        <p class="empty">Generate a program to see the patient-ready preview.</p>
+        <button id="backToEditBtn" type="button">Back to Edit</button>
       </div>
     </section>
   </main>
