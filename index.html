@@ -3,33 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HEP Program Generator</title>
+  <title>HEP Builder Pro</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
     <section class="card no-print">
-      <h1>HEP Program Generator</h1>
-      <p class="subtitle">
-        Paste a home exercise program, generate a patient-ready handout, then print to PDF or open an email draft.
-      </p>
+      <div class="header-row">
+        <div>
+          <h1>HEP Builder Pro</h1>
+          <p class="subtitle">Paste rough clinician shorthand, generate a patient-ready program, then edit, email, or save as PDF.</p>
+        </div>
+        <div class="badge">Local template engine</div>
+      </div>
 
-      <div class="grid">
+      <div class="grid two-col">
         <div>
           <label for="patientName">Patient name</label>
           <input id="patientName" type="text" placeholder="e.g. John Smith" />
         </div>
-
         <div>
           <label for="recipientEmail">Recipient email</label>
           <input id="recipientEmail" type="email" placeholder="e.g. patient@email.com" />
         </div>
-
         <div>
           <label for="programTitle">Program title</label>
           <input id="programTitle" type="text" value="Home Exercise Program" />
         </div>
-
         <div>
           <label for="programDate">Date</label>
           <input id="programDate" type="date" />
@@ -37,26 +37,36 @@
       </div>
 
       <div class="field-block">
-        <label for="introText">Intro / instructions</label>
-        <textarea id="introText" rows="4" placeholder="General instructions for the patient">Perform the following exercises as prescribed. Stop and contact your physiotherapist if symptoms significantly worsen.</textarea>
+        <label for="introText">General instructions</label>
+        <textarea id="introText" rows="3">Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.</textarea>
       </div>
 
       <div class="field-block">
-        <label for="inputText">Paste HEP text</label>
-        <textarea id="inputText" rows="14" placeholder="Example:
-1) Pelvic Tilts – 2 x 10, 3-second holds
-2) Bridge – 3 x 8
-3) Calf Stretch – 2 x 30s each side
-4) Clamshell – 2 x 12 each side
-Frequency: daily"></textarea>
+        <label for="inputText">Rough exercise list</label>
+        <textarea id="inputText" rows="10" placeholder="Examples:
+leg press 3x10 hold 5 sec
+SLS 2x15
+jumping jacks 30s different intensities
+calf stretch 2x30s each side
+bridge with band 3x12"></textarea>
       </div>
 
       <div class="button-row">
-        <button id="sampleBtn" type="button">Load sample</button>
+        <button id="sampleBtn" type="button">Load Sample</button>
         <button id="generateBtn" type="button">Generate Program</button>
         <button id="printBtn" type="button">Download / Print PDF</button>
         <button id="emailBtn" type="button">Open Email Draft</button>
         <button id="copySummaryBtn" type="button">Copy Summary</button>
+      </div>
+    </section>
+
+    <section class="card no-print">
+      <div class="section-title-row">
+        <h2>Editable Exercise Cards</h2>
+        <p class="section-note">Review and edit before sending. Changes update the patient preview below.</p>
+      </div>
+      <div id="editorList">
+        <p class="empty">Generate a program to review editable exercise cards.</p>
       </div>
     </section>
 
