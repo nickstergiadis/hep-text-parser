@@ -3,110 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HEP Program Builder</title>
+  <title>HEP Program Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
-    <section class="panel no-print">
-      <div class="panel-header">
-        <div>
-          <h1>HEP Program Builder</h1>
-          <p class="subtitle">
-            Paste structured JSON from ChatGPT, match it to your exercise library, and generate a patient-ready handout.
-          </p>
-        </div>
-        <div class="status-pill" id="libraryStatus">Loading library…</div>
-      </div>
+    <section class="card no-print">
+      <h1>HEP Program Generator</h1>
+      <p class="subtitle">
+        Paste a home exercise program, generate a patient-ready handout, then print to PDF or open an email draft.
+      </p>
 
-      <div class="grid grid-4">
+      <div class="grid">
         <div>
           <label for="patientName">Patient name</label>
           <input id="patientName" type="text" placeholder="e.g. John Smith" />
         </div>
+
         <div>
-          <label for="patientEmail">Patient email</label>
-          <input id="patientEmail" type="email" placeholder="e.g. patient@email.com" />
+          <label for="recipientEmail">Recipient email</label>
+          <input id="recipientEmail" type="email" placeholder="e.g. patient@email.com" />
         </div>
+
         <div>
           <label for="programTitle">Program title</label>
-          <input id="programTitle" type="text" placeholder="e.g. Home Exercise Program" />
+          <input id="programTitle" type="text" value="Home Exercise Program" />
         </div>
+
         <div>
           <label for="programDate">Date</label>
           <input id="programDate" type="date" />
         </div>
       </div>
 
-      <div class="grid grid-2">
-        <div>
-          <label for="jsonInput">Program JSON</label>
-          <textarea id="jsonInput" rows="24" spellcheck="false" placeholder="Paste valid JSON here"></textarea>
-        </div>
-        <div>
-          <label for="manualNotes">Optional delivery note</label>
-          <textarea id="manualNotes" rows="6" placeholder="Optional note to include in the email or patient copy"></textarea>
+      <div class="field-block">
+        <label for="introText">Intro / instructions</label>
+        <textarea id="introText" rows="4" placeholder="General instructions for the patient">Perform the following exercises as prescribed. Stop and contact your physiotherapist if symptoms significantly worsen.</textarea>
+      </div>
 
-          <label for="programSummary">Quick overview</label>
-          <textarea id="programSummary" rows="6" placeholder="Optional summary for the patient"></textarea>
-
-          <div class="helper-card">
-            <h3>Expected workflow</h3>
-            <ol>
-              <li>Generate strict JSON from ChatGPT using the prompt template in <code>docs/prompt-template.txt</code>.</li>
-              <li>Paste it here.</li>
-              <li>Generate the patient-facing handout.</li>
-              <li>Print to PDF, copy chart summary, or open an email draft.</li>
-            </ol>
-          </div>
-        </div>
+      <div class="field-block">
+        <label for="inputText">Paste HEP text</label>
+        <textarea id="inputText" rows="14" placeholder="Example:
+1) Pelvic Tilts – 2 x 10, 3-second holds
+2) Bridge – 3 x 8
+3) Calf Stretch – 2 x 30s each side
+4) Clamshell – 2 x 12 each side
+Frequency: daily"></textarea>
       </div>
 
       <div class="button-row">
-        <button id="loadSampleBtn" type="button">Load sample JSON</button>
-        <button id="generateBtn" type="button">Generate program</button>
-        <button id="printBtn" type="button">Print / Save PDF</button>
-        <button id="emailBtn" type="button">Open email draft</button>
-        <button id="copyChartBtn" type="button">Copy chart summary</button>
-        <button id="copyPatientBtn" type="button">Copy patient text</button>
-      </div>
-
-      <div class="helper-card warning" id="messageBox">
-        <strong>Status:</strong> Load sample JSON or paste your own, then click Generate program.
+        <button id="sampleBtn" type="button">Load sample</button>
+        <button id="generateBtn" type="button">Generate Program</button>
+        <button id="printBtn" type="button">Download / Print PDF</button>
+        <button id="emailBtn" type="button">Open Email Draft</button>
+        <button id="copySummaryBtn" type="button">Copy Summary</button>
       </div>
     </section>
 
-    <section class="program-sheet" id="programSheet">
-      <div class="program-topbar">
-        <img id="clinicLogo" class="clinic-logo" src="" alt="Clinic logo" />
-        <div class="program-topbar-right">
+    <section id="programPreview" class="program-sheet">
+      <div class="program-header">
+        <div>
           <h2 id="previewTitle">Home Exercise Program</h2>
-          <p class="muted" id="previewClinicName">Clinic</p>
-          <p class="muted" id="previewPatient">Patient: —</p>
-          <p class="muted" id="previewDate">Date: —</p>
+          <p id="previewPatient" class="muted">Patient: —</p>
+          <p id="previewDate" class="muted">Date: —</p>
         </div>
       </div>
 
-      <section class="program-meta">
-        <div class="meta-card">
-          <h3>Program Overview</h3>
-          <p id="previewFrequency">Frequency: —</p>
-          <p id="previewIntro">General instructions will appear here.</p>
-          <p id="previewPrecautions">Precautions will appear here.</p>
-          <p id="previewProgramNotes">Program notes will appear here.</p>
-        </div>
-      </section>
+      <div class="intro-box">
+        <p id="previewIntro">Perform the following exercises as prescribed.</p>
+      </div>
 
-      <section id="sectionsContainer" class="sections-container">
-        <div class="empty-state">Generate a program to see the preview.</div>
-      </section>
-
-      <footer class="program-footer">
-        <p id="previewFooter">
-          This program is intended for the named patient only.
-        </p>
-        <p id="previewSignature">Clinician</p>
-      </footer>
+      <div id="exerciseList" class="exercise-list">
+        <p class="empty">Generate a program to see the patient-ready preview.</p>
+      </div>
     </section>
   </main>
 
