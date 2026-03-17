@@ -8,44 +8,45 @@
 </head>
 <body>
   <main class="container">
-    <section class="card no-print">
+    <section class="panel">
       <h1>HEP Builder Pro</h1>
       <p class="subtitle">Paste rough exercise shorthand, generate editable instructions, then export as PDF or email draft.</p>
 
-      <div class="grid">
-        <div>
+      <div class="form-grid">
+        <div class="field">
           <label for="patientName">Patient name</label>
-          <input id="patientName" type="text" placeholder="e.g. John Smith" />
+          <input id="patientName" type="text" placeholder="Patient name" />
         </div>
-        <div>
+        <div class="field">
           <label for="recipientEmail">Recipient email</label>
-          <input id="recipientEmail" type="email" placeholder="e.g. patient@email.com" />
+          <input id="recipientEmail" type="email" placeholder="patient@email.com" />
         </div>
-        <div>
+        <div class="field">
           <label for="programTitle">Program title</label>
           <input id="programTitle" type="text" value="Home Exercise Program" />
         </div>
-        <div>
+        <div class="field">
           <label for="programDate">Date</label>
           <input id="programDate" type="date" />
         </div>
       </div>
 
-      <div class="field-block">
+      <div class="field">
         <label for="introText">Intro / instructions</label>
         <textarea id="introText" rows="3">Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.</textarea>
       </div>
 
-      <div class="field-block">
+      <div class="field">
         <label for="inputText">Paste HEP text</label>
-        <textarea id="inputText" rows="10" placeholder="Examples:
-leg press 3x10 hold 5 sec
-SLS 2x15 each side
+        <textarea id="inputText" rows="7" placeholder="leg press 3x10 hold 5 sec
+SLS 2x15
 jumping jacks 30s different intensities
-calf stretch 2x30s each side"></textarea>
+calf stretch 2x30s each side
+bridge with band 3x12
+Frequency: daily"></textarea>
       </div>
 
-      <div class="button-row">
+      <div class="button-row no-print">
         <button id="sampleBtn" type="button">Load sample</button>
         <button id="generateBtn" type="button">Generate Program</button>
         <button id="printBtn" type="button">Download / Print PDF</button>
@@ -54,26 +55,24 @@ calf stretch 2x30s each side"></textarea>
       </div>
     </section>
 
-    <section class="card no-print">
+    <section class="panel no-print">
       <h2>Editable Exercises</h2>
-      <p class="helper">Adjust names, dosage, instructions, and notes before sending.</p>
-      <div id="editorList"><p class="empty">Generate a program to edit exercise cards.</p></div>
+      <p class="subtitle">Adjust names, dosage, instructions, and notes before sending.</p>
+      <div id="editorList">
+        <p class="empty">Generate a program to edit exercises.</p>
+      </div>
     </section>
 
-    <section id="programPreview" class="program-sheet">
-      <div class="program-header">
-        <div>
-          <h2 id="previewTitle">Home Exercise Program</h2>
-          <p id="previewPatient" class="muted">Patient: —</p>
-          <p id="previewDate" class="muted">Date: —</p>
-        </div>
-      </div>
+    <section class="panel" id="previewPanel">
+      <h2 id="previewTitle">Home Exercise Program</h2>
+      <p class="meta" id="previewPatient">Patient: —</p>
+      <p class="meta" id="previewDate">Date: —</p>
 
-      <div class="intro-box">
+      <div class="intro-box" id="previewIntroBox">
         <p id="previewIntro">Perform the following exercises as prescribed.</p>
       </div>
 
-      <div id="exerciseList" class="exercise-list">
+      <div id="previewList">
         <p class="empty">Generate a program to see the patient-ready preview.</p>
       </div>
     </section>

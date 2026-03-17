@@ -1,232 +1,239 @@
-const patientNameEl = document.getElementById("patientName");
-const recipientEmailEl = document.getElementById("recipientEmail");
-const programTitleEl = document.getElementById("programTitle");
-const programDateEl = document.getElementById("programDate");
-const introTextEl = document.getElementById("introText");
-const inputTextEl = document.getElementById("inputText");
+const els = {
+  patientName: document.getElementById("patientName"),
+  recipientEmail: document.getElementById("recipientEmail"),
+  programTitle: document.getElementById("programTitle"),
+  programDate: document.getElementById("programDate"),
+  introText: document.getElementById("introText"),
+  inputText: document.getElementById("inputText"),
+  sampleBtn: document.getElementById("sampleBtn"),
+  generateBtn: document.getElementById("generateBtn"),
+  printBtn: document.getElementById("printBtn"),
+  emailBtn: document.getElementById("emailBtn"),
+  copySummaryBtn: document.getElementById("copySummaryBtn"),
+  editorList: document.getElementById("editorList"),
+  previewTitle: document.getElementById("previewTitle"),
+  previewPatient: document.getElementById("previewPatient"),
+  previewDate: document.getElementById("previewDate"),
+  previewIntro: document.getElementById("previewIntro"),
+  previewList: document.getElementById("previewList")
+};
 
-const sampleBtn = document.getElementById("sampleBtn");
-const generateBtn = document.getElementById("generateBtn");
-const printBtn = document.getElementById("printBtn");
-const emailBtn = document.getElementById("emailBtn");
-const copySummaryBtn = document.getElementById("copySummaryBtn");
+let exercises = [];
 
-const editorListEl = document.getElementById("editorList");
-const previewTitleEl = document.getElementById("previewTitle");
-const previewPatientEl = document.getElementById("previewPatient");
-const previewDateEl = document.getElementById("previewDate");
-const previewIntroEl = document.getElementById("previewIntro");
-const exerciseListEl = document.getElementById("exerciseList");
-
-let parsedExercises = [];
-
-const exerciseLibrary = [
+const EXERCISE_LIBRARY = [
   {
-    keys: ["pelvic tilt", "pelvic tilts"],
-    display: "Pelvic Tilts",
+    key: "leg press",
+    aliases: ["leg press", "lp"],
+    displayName: "Leg Press",
     instructions: [
-      "Lie on your back with your knees bent and feet flat.",
-      "Gently tilt your pelvis to flatten your low back toward the floor.",
-      "Return to neutral in a slow, controlled way."
+      "Sit with your feet flat on the platform about hip-width apart.",
+      "Press through your feet to straighten your legs in a controlled way.",
+      "Return slowly to the starting position without letting the weight drop."
     ]
   },
   {
-    keys: ["bridge", "glute bridge"],
-    display: "Bridge",
+    key: "single leg stance",
+    aliases: ["sls", "single leg stance", "single leg stand", "single leg balance"],
+    displayName: "Single Leg Stance",
     instructions: [
-      "Lie on your back with your knees bent and feet flat.",
-      "Tighten your glutes and lift your hips up in a controlled motion.",
-      "Pause briefly, then slowly lower back down."
+      "Stand tall near a stable surface for support if needed.",
+      "Lift one foot off the floor and balance on the other leg.",
+      "Keep your posture upright and control the position without leaning."
     ]
   },
   {
-    keys: ["calf stretch", "gastroc stretch", "wall calf stretch"],
-    display: "Calf Stretch",
+    key: "jumping jacks",
+    aliases: ["jumping jacks", "jumping jack", "star jumps"],
+    displayName: "Jumping Jacks",
+    instructions: [
+      "Start standing tall with your arms at your sides and feet together.",
+      "Jump your feet out to the sides while raising your arms overhead.",
+      "Continue at the prescribed pace and adjust intensity as tolerated."
+    ]
+  },
+  {
+    key: "calf stretch",
+    aliases: ["calf stretch", "gastroc stretch", "wall calf stretch"],
+    displayName: "Calf Stretch",
     instructions: [
       "Stand facing a wall and place your hands on the wall for support.",
-      "Step one leg back and keep the heel down.",
-      "Lean forward until you feel a stretch in the calf."
+      "Step one leg back and keep the heel down with the knee straight.",
+      "Lean forward until you feel a gentle stretch in the calf."
     ]
   },
   {
-    keys: ["clamshell", "clam shell"],
-    display: "Clamshell",
+    key: "bridge",
+    aliases: ["bridge", "glute bridge", "bridging"],
+    displayName: "Bridge",
+    instructions: [
+      "Lie on your back with your knees bent and feet flat on the floor.",
+      "Tighten your glutes and lift your hips until your body forms a straight line.",
+      "Lower back down slowly with control."
+    ]
+  },
+  {
+    key: "clamshell",
+    aliases: ["clamshell", "clam", "clam shell"],
+    displayName: "Clamshell",
     instructions: [
       "Lie on your side with your knees bent and feet together.",
-      "Keep your feet touching as you lift the top knee upward.",
-      "Lower the knee back down with control without rolling your trunk backward."
-    ]
-  },
-  {
-    keys: ["sls", "single leg stance", "single-leg stance"],
-    display: "Single Leg Stance",
-    instructions: [
-      "Stand tall near a stable support if needed.",
-      "Lift one foot off the ground and balance on the other leg.",
-      "Keep your posture upright and maintain control throughout the hold or repetitions."
-    ]
-  },
-  {
-    keys: ["leg press"],
-    display: "Leg Press",
-    instructions: [
-      "Place your feet on the platform about hip-width apart.",
-      "Press through your feet to straighten your legs in a controlled manner.",
-      "Slowly return to the starting position without letting the movement snap back."
-    ]
-  },
-  {
-    keys: ["jumping jacks", "jumping jack"],
-    display: "Jumping Jacks",
-    instructions: [
-      "Start standing with your feet together and arms by your sides.",
-      "Jump your feet out while raising your arms overhead.",
-      "Continue at the prescribed pace and intensity, then return to the starting position."
-    ]
-  },
-  {
-    keys: ["wall sit", "wall squat hold"],
-    display: "Wall Sit",
-    instructions: [
-      "Stand with your back against a wall and slide down into a partial squat.",
-      "Keep your feet planted and your trunk supported by the wall.",
-      "Hold the position as prescribed, then stand back up with control."
-    ]
-  },
-  {
-    keys: ["side steps", "band walks", "lateral band walk", "monster walk"],
-    display: "Side Steps with Band",
-    instructions: [
-      "Place the band around your legs as instructed and slightly bend your knees.",
-      "Step sideways while keeping steady tension on the band.",
-      "Stay controlled and avoid letting your knees collapse inward."
+      "Keep your feet touching and lift the top knee without rolling your hips back.",
+      "Lower the knee slowly and stay in control throughout."
     ]
   }
 ];
 
 setDefaultDate();
 
-sampleBtn.addEventListener("click", loadSample);
-generateBtn.addEventListener("click", generateProgram);
-printBtn.addEventListener("click", () => {
-  generateProgram();
+els.sampleBtn.addEventListener("click", loadSample);
+els.generateBtn.addEventListener("click", generateProgram);
+els.printBtn.addEventListener("click", () => {
+  syncFromEditors();
+  renderPreview();
   window.print();
 });
-emailBtn.addEventListener("click", openEmailDraft);
-copySummaryBtn.addEventListener("click", copySummary);
-editorListEl.addEventListener("input", handleEditorChange);
+els.emailBtn.addEventListener("click", openEmailDraft);
+els.copySummaryBtn.addEventListener("click", copySummary);
 
 function setDefaultDate() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  programDateEl.value = `${yyyy}-${mm}-${dd}`;
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  els.programDate.value = `${yyyy}-${mm}-${dd}`;
 }
 
 function loadSample() {
-  patientNameEl.value = "Sample Patient";
-  recipientEmailEl.value = "patient@example.com";
-  programTitleEl.value = "Home Exercise Program";
-  introTextEl.value = "Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.";
-  inputTextEl.value = `1) Pelvic Tilts – 2 x 10, 3-second holds\n2) Bridge – 3 x 8\n3) Calf Stretch – 2 x 30s each side\n4) Clamshell – 2 x 12 each side\nFrequency: daily`;
+  els.patientName.value = "Sample Patient";
+  els.recipientEmail.value = "patient@example.com";
+  els.programTitle.value = "Home Exercise Program";
+  els.introText.value = "Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.";
+  els.inputText.value = `leg press 3x10 hold 5 sec
+SLS 2x15
+jumping jacks 30s different intensities
+calf stretch 2x30s each side
+bridge with band 3x12
+Frequency: daily`;
   generateProgram();
 }
 
 function generateProgram() {
-  const rawText = inputTextEl.value.trim();
-  if (!rawText) {
-    editorListEl.innerHTML = `<p class="empty">Paste HEP text first.</p>`;
-    exerciseListEl.innerHTML = `<p class="empty">Paste HEP text first.</p>`;
-    return;
-  }
-
-  parsedExercises = parseHEP(rawText);
+  exercises = parseInput(els.inputText.value);
   renderEditors();
   renderPreview();
 }
 
-function parseHEP(text) {
-  const lines = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+function parseInput(text) {
+  const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+  const frequencyLine = lines.find(line => /^frequency\s*:/i.test(line));
+  const globalFrequency = frequencyLine ? lineValueAfterColon(frequencyLine) : "";
+  const exerciseLines = lines.filter(line => !/^frequency\s*:/i.test(line));
 
-  const frequencyLine = lines.find((line) => /^frequency:/i.test(line));
-  const frequency = frequencyLine ? frequencyLine.replace(/^frequency:/i, "").trim() : "";
-  const exerciseLines = lines.filter((line) => !/^frequency:/i.test(line));
-
-  return exerciseLines
-    .map((line) => parseLine(line, frequency))
-    .filter((item) => item.name);
+  return exerciseLines.map((raw) => buildExercise(raw, globalFrequency));
 }
 
-function parseLine(line, frequency = "") {
-  let cleaned = line
-    .replace(/^\d+[\).\s-]*/, "")
-    .replace(/^•\s*/, "")
-    .trim();
+function lineValueAfterColon(line) {
+  return line.split(":").slice(1).join(":").trim();
+}
 
-  const dashSplit = cleaned.split(/\s+[–—-]\s+/);
-  let name = cleaned;
-  let details = "";
-  if (dashSplit.length >= 2) {
-    name = dashSplit[0].trim();
-    details = dashSplit.slice(1).join(" - ").trim();
+function buildExercise(raw, globalFrequency) {
+  let working = normalizeSpaces(raw.toLowerCase());
+
+  const detected = findExercise(working);
+  let displayName = detected ? detected.displayName : titleCase(cleanBaseName(working));
+  let instructions = detected ? [...detected.instructions] : genericInstructions(displayName);
+
+  const setsReps = working.match(/(\d+)\s*x\s*(\d+)(?!\s*(s|sec|secs|second|seconds|min|mins|minute|minutes))/i);
+  const setsDuration = working.match(/(\d+)\s*x\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  let sets = "", reps = "", duration = "";
+
+  if (setsDuration) {
+    sets = setsDuration[1];
+    duration = `${setsDuration[2]} ${normalizeTimeUnit(setsDuration[3])}`;
+    working = removeFragment(working, setsDuration[0]);
+  } else if (setsReps) {
+    sets = setsReps[1];
+    reps = setsReps[2];
+    working = removeFragment(working, setsReps[0]);
   }
 
-  let sets = "";
-  let reps = "";
+  const holdMatch = working.match(/hold\s*(for\s*)?(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
   let hold = "";
-  let duration = "";
-  let side = "";
-  let notes = details;
+  if (holdMatch) {
+    hold = `${holdMatch[2]} ${normalizeTimeUnit(holdMatch[3])}`;
+    working = removeFragment(working, holdMatch[0]);
+  }
 
-  const setsDurationMatch = details.match(/(\d+)\s*x\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
-  if (setsDurationMatch) {
-    sets = setsDurationMatch[1];
-    duration = `${setsDurationMatch[2]} ${normalizeTimeUnit(setsDurationMatch[3])}`;
-    notes = removeText(notes, setsDurationMatch[0]);
-  } else {
-    const setsRepsMatch = details.match(/(\d+)\s*x\s*(\d+)/i);
-    if (setsRepsMatch) {
-      sets = setsRepsMatch[1];
-      reps = setsRepsMatch[2];
-      notes = removeText(notes, setsRepsMatch[0]);
+  const standAloneDurationMatch = !duration ? working.match(/(?<!x\s)(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i) : null;
+  if (standAloneDurationMatch) {
+    duration = `${standAloneDurationMatch[1]} ${normalizeTimeUnit(standAloneDurationMatch[2])}`;
+    working = removeFragment(working, standAloneDurationMatch[0]);
+  }
+
+  let side = "";
+  const sideMatch = working.match(/each side|per side|each leg|each arm|left|right/i);
+  if (sideMatch) {
+    side = sideMatch[0];
+    working = removeFragment(working, sideMatch[0]);
+  }
+
+  let frequency = globalFrequency;
+  const inlineFreq = working.match(/\b(daily|every day|3x\/week|2x\/week|weekly)\b/i);
+  if (inlineFreq) {
+    frequency = inlineFreq[0];
+    working = removeFragment(working, inlineFreq[0]);
+  }
+
+  const modifiers = [];
+  if (/\bwith band\b|\bbanded\b|\bband\b/i.test(working) || /\bwith band\b|\bbanded\b|\bband\b/i.test(raw)) {
+    if (/bridge/i.test(displayName)) {
+      displayName = "Bridge with Band";
+      instructions = [
+        "Lie on your back with your knees bent and feet flat on the floor with the band in place.",
+        "Press your knees gently out into the band and lift your hips until your body forms a straight line.",
+        "Lower back down slowly with control."
+      ];
+    }
+    modifiers.push("with band");
+    working = removeFragment(working, "with band");
+    working = removeFragment(working, "banded");
+    working = removeFragment(working, "band");
+  }
+
+  if (/\bdifferent intensit/i.test(raw)) {
+    modifiers.push("different intensities");
+    working = working.replace(/\bdifferent intensit(?:y|ies)\b/gi, " ");
+  }
+
+  if (/\becc?\b|\beccentric\b/i.test(raw)) {
+    modifiers.push("eccentric emphasis");
+    working = working.replace(/\beccentric\b|\becc\b/gi, " ");
+  }
+
+  // Remove detected exercise aliases from residue.
+  if (detected) {
+    for (const alias of detected.aliases.sort((a, b) => b.length - a.length)) {
+      working = removeFragment(working, alias);
     }
   }
 
-  const holdMatch = details.match(/(?:hold\s*)?(\d+)\s*[-]?\s*(second|seconds|sec|secs)\s*holds?/i) || details.match(/hold\s*(\d+)\s*[-]?\s*(second|seconds|sec|secs)/i);
-  if (holdMatch) {
-    hold = `${holdMatch[1]} sec`;
-    notes = removeText(notes, holdMatch[0]);
-  }
+  // Clean low-value residue/junk.
+  working = working
+    .replace(/\bhold\b/gi, " ")
+    .replace(/\bfor\b/gi, " ")
+    .replace(/[–—-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const bareDurationMatch = !duration ? details.match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i) : null;
-  if (bareDurationMatch) {
-    duration = `${bareDurationMatch[1]} ${normalizeTimeUnit(bareDurationMatch[2])}`;
-    notes = removeText(notes, bareDurationMatch[0]);
-  }
-
-  const sideMatch = details.match(/each side|per side|each leg|each arm|each way/i);
-  if (sideMatch) {
-    side = sideMatch[0];
-    notes = removeText(notes, sideMatch[0]);
-  }
-
-  const match = findExerciseMatch(name);
-  const displayName = match ? match.display : toTitleCase(name);
-  const instructions = match ? [...match.instructions] : genericInstructions(displayName);
-
-  notes = notes.replace(/^,+|,+$/g, "").trim();
+  let notes = normalizeNotes(working, modifiers, displayName);
 
   return {
-    raw_input: line,
-    name: displayName,
+    rawInput: raw,
+    displayName,
     sets,
     reps,
-    hold,
     duration,
+    hold,
     side,
     frequency,
     notes,
@@ -234,238 +241,274 @@ function parseLine(line, frequency = "") {
   };
 }
 
-function findExerciseMatch(name) {
-  const lower = name.toLowerCase();
-  return exerciseLibrary.find((item) => item.keys.some((key) => lower.includes(key)));
+function normalizeNotes(residue, modifiers, displayName) {
+  let text = residue || "";
+  const displayWords = displayName.toLowerCase().split(/\s+/);
+  displayWords.forEach(word => {
+    if (word.length > 2) {
+      text = text.replace(new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi"), " ");
+    }
+  });
+
+  text = text
+    .replace(/\bec\b/gi, " ")
+    .replace(/\bx\b/gi, " ")
+    .replace(/\bsec\b|\bmin\b/gi, " ")
+    .replace(/\d+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const parts = [];
+  modifiers.forEach(m => {
+    if (!parts.includes(m)) parts.push(m);
+  });
+
+  if (text && text.length > 1) {
+    parts.push(text);
+  }
+
+  return parts.join(" • ");
 }
 
-function genericInstructions(displayName) {
+function findExercise(text) {
+  let best = null;
+  let bestLen = 0;
+  for (const item of EXERCISE_LIBRARY) {
+    for (const alias of item.aliases) {
+      const rx = new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i");
+      if (rx.test(text) && alias.length > bestLen) {
+        best = item;
+        bestLen = alias.length;
+      }
+    }
+  }
+  return best;
+}
+
+function cleanBaseName(text) {
+  return normalizeSpaces(
+    text
+      .replace(/\d+/g, " ")
+      .replace(/\bhold\b|\bfor\b|\beach side\b|\bper side\b|\beach leg\b|\beach arm\b|\bdaily\b|\bevery day\b/gi, " ")
+      .replace(/\b(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/gi, " ")
+      .replace(/[x]/gi, " ")
+  );
+}
+
+function genericInstructions(name) {
   return [
-    `Set up for ${displayName.toLowerCase()} in a stable and comfortable position.`,
-    "Perform the movement in a slow, controlled manner.",
-    "Stay within a comfortable range and use the prescribed dosage."
+    `Set up for ${name.toLowerCase()} in a comfortable and controlled starting position.`,
+    "Perform the movement slowly and stay within a comfortable range.",
+    "Return to the starting position with control."
   ];
 }
 
+function normalizeTimeUnit(unit) {
+  const u = unit.toLowerCase();
+  if (["s", "sec", "secs", "second", "seconds"].includes(u)) return "sec";
+  if (["min", "mins", "minute", "minutes"].includes(u)) return "min";
+  return unit;
+}
+
+function removeFragment(text, fragment) {
+  return normalizeSpaces(text.replace(new RegExp(escapeRegExp(fragment), "ig"), " "));
+}
+
+function normalizeSpaces(str) {
+  return String(str).replace(/\s+/g, " ").trim();
+}
+
+function titleCase(str) {
+  return str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
+}
+
+function escapeRegExp(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function renderEditors() {
-  if (!parsedExercises.length) {
-    editorListEl.innerHTML = `<p class="empty">No exercises to edit.</p>`;
+  if (!exercises.length) {
+    els.editorList.innerHTML = `<p class="empty">No exercises generated.</p>`;
     return;
   }
 
-  editorListEl.innerHTML = parsedExercises.map((exercise, index) => `
-    <div class="editor-card" data-index="${index}">
+  els.editorList.innerHTML = exercises.map((ex, i) => `
+    <div class="editor-card" data-index="${i}">
+      <h3>${i + 1}. ${escapeHtml(ex.displayName)}</h3>
+      <div class="raw-chip">Raw input: ${escapeHtml(ex.rawInput)}</div>
+
       <div class="editor-grid">
+        <div class="span-3">
+          <span class="mini-label">Display Name</span>
+          <input class="editor-displayName" value="${escapeAttr(ex.displayName)}" />
+        </div>
+        <div class="span-3">
+          <span class="mini-label">Frequency</span>
+          <input class="editor-frequency" value="${escapeAttr(ex.frequency)}" />
+        </div>
+
         <div>
-          <div class="editor-label">Exercise name</div>
-          <input data-field="name" value="${escapeAttr(exercise.name)}" />
+          <span class="mini-label">Sets</span>
+          <input class="editor-sets" value="${escapeAttr(ex.sets)}" />
         </div>
         <div>
-          <div class="editor-label">Sets</div>
-          <input data-field="sets" value="${escapeAttr(exercise.sets)}" />
+          <span class="mini-label">Reps</span>
+          <input class="editor-reps" value="${escapeAttr(ex.reps)}" />
         </div>
         <div>
-          <div class="editor-label">Reps</div>
-          <input data-field="reps" value="${escapeAttr(exercise.reps)}" />
+          <span class="mini-label">Duration</span>
+          <input class="editor-duration" value="${escapeAttr(ex.duration)}" />
         </div>
         <div>
-          <div class="editor-label">Duration / Hold</div>
-          <input data-field="durationHold" value="${escapeAttr(joinDurationHold(exercise))}" />
+          <span class="mini-label">Hold</span>
+          <input class="editor-hold" value="${escapeAttr(ex.hold)}" />
+        </div>
+        <div>
+          <span class="mini-label">Side</span>
+          <input class="editor-side" value="${escapeAttr(ex.side)}" />
+        </div>
+        <div>
+          <span class="mini-label">Notes</span>
+          <input class="editor-notes" value="${escapeAttr(ex.notes)}" />
+        </div>
+
+        <div class="full">
+          <span class="mini-label">Instructions (one per line)</span>
+          <textarea class="editor-instructions" rows="4">${escapeHtml(ex.instructions.join("\n"))}</textarea>
         </div>
       </div>
-      <div class="editor-subgrid">
-        <div>
-          <div class="editor-label">Side / Frequency</div>
-          <input data-field="sideFrequency" value="${escapeAttr(joinSideFrequency(exercise))}" />
-        </div>
-        <div>
-          <div class="editor-label">Notes</div>
-          <input data-field="notes" value="${escapeAttr(exercise.notes)}" />
-        </div>
+    </div>
+  `).join("");
+
+  els.editorList.querySelectorAll("input, textarea").forEach(el => {
+    el.addEventListener("input", () => {
+      syncFromEditors();
+      renderPreview();
+    });
+  });
+}
+
+function syncFromEditors() {
+  const cards = els.editorList.querySelectorAll(".editor-card");
+  exercises = Array.from(cards).map((card, i) => {
+    const raw = exercises[i]?.rawInput || "";
+    const instructionsText = card.querySelector(".editor-instructions").value.trim();
+    return {
+      rawInput: raw,
+      displayName: card.querySelector(".editor-displayName").value.trim(),
+      frequency: card.querySelector(".editor-frequency").value.trim(),
+      sets: card.querySelector(".editor-sets").value.trim(),
+      reps: card.querySelector(".editor-reps").value.trim(),
+      duration: card.querySelector(".editor-duration").value.trim(),
+      hold: card.querySelector(".editor-hold").value.trim(),
+      side: card.querySelector(".editor-side").value.trim(),
+      notes: card.querySelector(".editor-notes").value.trim(),
+      instructions: instructionsText ? instructionsText.split("\n").map(x => x.trim()).filter(Boolean) : []
+    };
+  });
+}
+
+function renderPreview() {
+  syncMeta();
+  if (!exercises.length) {
+    els.previewList.innerHTML = `<p class="empty">Generate a program to see the patient-ready preview.</p>`;
+    return;
+  }
+
+  els.previewList.innerHTML = exercises.map((ex, i) => `
+    <div class="preview-card">
+      <div class="preview-head">
+        <p class="preview-name">${i + 1}. ${escapeHtml(ex.displayName || "Exercise")}</p>
+        <div class="preview-dose">${escapeHtml(buildDose(ex))}</div>
       </div>
-      <div style="margin-top:10px;">
-        <div class="editor-label">Instructions (one per line)</div>
-        <textarea data-field="instructions">${escapeHtml(exercise.instructions.join("\n"))}</textarea>
-      </div>
+      ${ex.instructions.length ? `
+      <ol>
+        ${ex.instructions.map(line => `<li>${escapeHtml(line)}</li>`).join("")}
+      </ol>` : ""}
+      ${ex.notes ? `<div class="notes-box"><strong>Notes:</strong> ${escapeHtml(ex.notes)}</div>` : ""}
     </div>
   `).join("");
 }
 
-function handleEditorChange(event) {
-  const target = event.target;
-  const card = target.closest(".editor-card");
-  if (!card) return;
-  const index = Number(card.dataset.index);
-  const field = target.dataset.field;
-  if (Number.isNaN(index) || !field) return;
-
-  const ex = parsedExercises[index];
-  const value = target.value;
-
-  if (field === "name") ex.name = value;
-  if (field === "sets") ex.sets = value;
-  if (field === "reps") ex.reps = value;
-  if (field === "notes") ex.notes = value;
-  if (field === "instructions") ex.instructions = value.split("\n").map(s => s.trim()).filter(Boolean);
-  if (field === "durationHold") {
-    ex.duration = "";
-    ex.hold = "";
-    const holdMatch = value.match(/hold\s*:?\s*(.+)$/i);
-    if (holdMatch) {
-      ex.hold = holdMatch[1].trim();
-    } else if (/sec|min|second|minute/i.test(value)) {
-      ex.duration = value.trim();
-    }
-  }
-  if (field === "sideFrequency") {
-    ex.side = "";
-    ex.frequency = "";
-    const parts = value.split(",").map(s => s.trim()).filter(Boolean);
-    if (parts[0]) ex.side = parts[0];
-    if (parts[1]) ex.frequency = parts[1];
-    if (parts.length === 1 && /(daily|week|x\/)/i.test(parts[0])) {
-      ex.frequency = parts[0];
-      ex.side = "";
-    }
-  }
-
-  renderPreview();
+function syncMeta() {
+  els.previewTitle.textContent = els.programTitle.value.trim() || "Home Exercise Program";
+  els.previewPatient.textContent = `Patient: ${els.patientName.value.trim() || "—"}`;
+  els.previewDate.textContent = `Date: ${els.programDate.value || "—"}`;
+  els.previewIntro.textContent = els.introText.value.trim() || "Perform the following exercises as prescribed.";
 }
 
-function renderPreview() {
-  const title = programTitleEl.value.trim() || "Home Exercise Program";
-  const patient = patientNameEl.value.trim() || "—";
-  const date = formatDate(programDateEl.value);
-  const intro = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
-
-  previewTitleEl.textContent = title;
-  previewPatientEl.textContent = `Patient: ${patient}`;
-  previewDateEl.textContent = `Date: ${date}`;
-  previewIntroEl.textContent = intro;
-
-  if (!parsedExercises.length) {
-    exerciseListEl.innerHTML = `<p class="empty">No exercises could be generated.</p>`;
-    return;
-  }
-
-  exerciseListEl.innerHTML = parsedExercises.map((exercise, index) => {
-    const dose = buildDoseString(exercise);
-    const notes = exercise.notes ? `<p class="exercise-notes"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</p>` : "";
-    const instructions = exercise.instructions?.length ? `
-      <ol class="instruction-list">
-        ${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ol>` : "";
-
-    return `
-      <article class="exercise-card">
-        <div class="exercise-top">
-          <div>
-            <p class="exercise-name">${index + 1}. ${escapeHtml(exercise.name || "Exercise")}</p>
-          </div>
-          <div class="exercise-dose">${escapeHtml(dose || "")}</div>
-        </div>
-        ${instructions}
-        ${notes}
-      </article>
-    `;
-  }).join("");
-}
-
-function buildDoseString(exercise) {
+function buildDose(ex) {
   const parts = [];
-  if (exercise.sets && exercise.reps) parts.push(`${exercise.sets} sets x ${exercise.reps} reps`);
-  else if (exercise.sets && exercise.duration) parts.push(`${exercise.sets} sets x ${exercise.duration}`);
-  else if (exercise.duration) parts.push(exercise.duration);
-  if (exercise.hold) parts.push(`${exercise.hold} hold`);
-  if (exercise.side) parts.push(exercise.side);
-  if (exercise.frequency) parts.push(exercise.frequency);
+  if (ex.sets && ex.reps) parts.push(`${ex.sets} sets x ${ex.reps} reps`);
+  else if (ex.sets && ex.duration) parts.push(`${ex.sets} sets x ${ex.duration}`);
+  else if (ex.duration) parts.push(ex.duration);
+  if (ex.hold) parts.push(`${ex.hold} hold`);
+  if (ex.side) parts.push(ex.side);
+  if (ex.frequency) parts.push(ex.frequency);
   return parts.join(" • ");
 }
 
+function openEmailDraft() {
+  syncFromEditors();
+  renderPreview();
+  const recipient = els.recipientEmail.value.trim();
+  if (!recipient) {
+    alert("Enter a recipient email first.");
+    return;
+  }
+
+  const subject = `${els.programTitle.value.trim() || "Home Exercise Program"} - ${els.programDate.value || ""}`;
+  const bodyLines = [
+    `Hello ${els.patientName.value.trim() || ""},`,
+    "",
+    els.introText.value.trim(),
+    ""
+  ];
+
+  exercises.forEach((ex, i) => {
+    bodyLines.push(`${i + 1}. ${ex.displayName}`);
+    const dose = buildDose(ex);
+    if (dose) bodyLines.push(`Dosage: ${dose}`);
+    ex.instructions.forEach((line, idx) => bodyLines.push(`- ${line}`));
+    if (ex.notes) bodyLines.push(`Notes: ${ex.notes}`);
+    bodyLines.push("");
+  });
+
+  const url = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+  window.location.href = url;
+}
+
 async function copySummary() {
-  generateProgram();
-  const summary = buildProgramSummary();
+  syncFromEditors();
+  renderPreview();
+  const lines = [
+    els.programTitle.value.trim() || "Home Exercise Program",
+    `Patient: ${els.patientName.value.trim() || "—"}`,
+    `Date: ${els.programDate.value || "—"}`,
+    "",
+    els.introText.value.trim(),
+    ""
+  ];
+
+  exercises.forEach((ex, i) => {
+    lines.push(`${i + 1}. ${ex.displayName}`);
+    const dose = buildDose(ex);
+    if (dose) lines.push(`Dosage: ${dose}`);
+    ex.instructions.forEach(line => lines.push(`- ${line}`));
+    if (ex.notes) lines.push(`Notes: ${ex.notes}`);
+    lines.push("");
+  });
+
   try {
-    await navigator.clipboard.writeText(summary);
-    alert("Program summary copied.");
+    await navigator.clipboard.writeText(lines.join("\n"));
+    alert("Summary copied.");
   } catch {
     alert("Could not copy summary.");
   }
 }
 
-function openEmailDraft() {
-  generateProgram();
-  const recipient = recipientEmailEl.value.trim();
-  if (!recipient) {
-    alert("Enter a recipient email first.");
-    return;
-  }
-  const title = programTitleEl.value.trim() || "Home Exercise Program";
-  const date = formatDate(programDateEl.value);
-  const body = buildProgramSummary(true);
-  const subject = `${title} - ${date}`;
-  const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailtoUrl;
-}
-
-function buildProgramSummary(includeGreeting = false) {
-  const title = programTitleEl.value.trim() || "Home Exercise Program";
-  const patient = patientNameEl.value.trim() || "Patient";
-  const date = formatDate(programDateEl.value);
-  const intro = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
-
-  const lines = [];
-  if (includeGreeting) lines.push(`Hello ${patient},`, "");
-  lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", intro, "", "Exercises:");
-
-  parsedExercises.forEach((exercise, index) => {
-    lines.push(`${index + 1}. ${exercise.name}`);
-    const dose = buildDoseString(exercise);
-    if (dose) lines.push(`Dosage: ${dose}`);
-    if (exercise.instructions?.length) {
-      lines.push("How to do it:");
-      exercise.instructions.forEach(step => lines.push(`- ${step}`));
-    }
-    if (exercise.notes) lines.push(`Notes: ${exercise.notes}`);
-    lines.push("");
-  });
-
-  if (includeGreeting) lines.push("Please reply if you have any questions.");
-  return lines.join("\n");
-}
-
-function normalizeTimeUnit(unit) {
-  const value = unit.toLowerCase();
-  if (["s", "sec", "secs", "second", "seconds"].includes(value)) return "sec";
-  if (["min", "mins", "minute", "minutes"].includes(value)) return "min";
-  return unit;
-}
-
-function removeText(base, fragment) {
-  return base.replace(fragment, "").replace(/^[,\s]+|[,\s]+$/g, "").trim();
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  const [yyyy, mm, dd] = value.split("-");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function toTitleCase(str) {
-  return String(str).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function joinDurationHold(exercise) {
-  if (exercise.hold) return `hold: ${exercise.hold}`;
-  return exercise.duration || "";
-}
-
-function joinSideFrequency(exercise) {
-  return [exercise.side, exercise.frequency].filter(Boolean).join(", ");
-}
-
 function escapeHtml(str) {
-  return String(str)
+  return String(str || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -474,9 +517,5 @@ function escapeHtml(str) {
 }
 
 function escapeAttr(str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+  return escapeHtml(str).replaceAll("\n", "&#10;");
 }
