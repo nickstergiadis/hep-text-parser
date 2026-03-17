@@ -1,19 +1,23 @@
-# HEP Builder Pro - Next Build
+# HEP Builder Pro - Patched Build
 
-This version is designed to be more useful for real clinician workflow.
+This build fixes the missing instruction issue from the prior version.
 
 ## What it does
 - Accepts rough shorthand exercise input
-- Standardizes common exercise names from a local exercise library
-- Auto-generates patient-friendly instructions for matched exercises
-- Creates editable exercise cards before sending
-- Renders a cleaner patient-facing HEP preview
-- Opens a prefilled email draft
+- Matches common exercise names locally
+- Auto-generates default patient-friendly instructions for matched exercises
+- Shows editable exercise cards before sending
+- Renders instructions in the patient preview
+- Includes instructions in the copied summary and email draft
 - Prints cleanly to PDF from the browser
 
-## Important limitation
-This version does **not** use a real AI API yet.
-It uses local matching and instruction templates inside `app.js`.
+## Files to upload
+Replace these files in your GitHub repo root:
+- index.html
+- style.css
+- app.js
 
-## Good next step
-Connect this UI to an AI endpoint that returns structured exercise JSON, then keep the editor + preview workflow from this build.
+README.md is optional.
+
+## Important limitation
+This is still a static GitHub Pages build. It does not connect to a live AI model.

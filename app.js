@@ -11,113 +11,110 @@ const printBtn = document.getElementById("printBtn");
 const emailBtn = document.getElementById("emailBtn");
 const copySummaryBtn = document.getElementById("copySummaryBtn");
 
+const editorListEl = document.getElementById("editorList");
 const previewTitleEl = document.getElementById("previewTitle");
 const previewPatientEl = document.getElementById("previewPatient");
 const previewDateEl = document.getElementById("previewDate");
 const previewIntroEl = document.getElementById("previewIntro");
 const exerciseListEl = document.getElementById("exerciseList");
-const editorListEl = document.getElementById("editorList");
 
-let exercises = [];
+let parsedExercises = [];
 
-const EXERCISE_LIBRARY = [
+const exerciseLibrary = [
   {
-    aliases: ["sls", "single leg stance", "single-leg stance", "single leg balance"],
-    name: "Single Leg Stance",
+    keys: ["pelvic tilt", "pelvic tilts"],
+    display: "Pelvic Tilts",
     instructions: [
-      "Stand tall near a stable surface for support if needed.",
-      "Lift one foot off the floor and balance on the other leg.",
-      "Keep your posture upright and control the position without leaning."
+      "Lie on your back with your knees bent and feet flat.",
+      "Gently tilt your pelvis to flatten your low back toward the floor.",
+      "Return to neutral in a slow, controlled way."
     ]
   },
   {
-    aliases: ["bridge", "glute bridge", "bridging", "bridge with band"],
-    name: "Bridge",
+    keys: ["bridge", "glute bridge"],
+    display: "Bridge",
     instructions: [
-      "Lie on your back with your knees bent and feet flat on the floor.",
-      "Tighten your glutes and lift your hips until your body forms a straight line.",
-      "Lower back down slowly with control."
+      "Lie on your back with your knees bent and feet flat.",
+      "Tighten your glutes and lift your hips up in a controlled motion.",
+      "Pause briefly, then slowly lower back down."
     ]
   },
   {
-    aliases: ["leg press"],
-    name: "Leg Press",
-    instructions: [
-      "Sit with your feet flat on the platform about hip-width apart.",
-      "Press through your feet to straighten your legs in a controlled way.",
-      "Return slowly to the starting position without letting the weight drop."
-    ]
-  },
-  {
-    aliases: ["calf stretch", "gastroc stretch", "gastrocnemius stretch"],
-    name: "Calf Stretch",
+    keys: ["calf stretch", "gastroc stretch", "wall calf stretch"],
+    display: "Calf Stretch",
     instructions: [
       "Stand facing a wall and place your hands on the wall for support.",
-      "Step one foot back and keep that heel down on the floor.",
+      "Step one leg back and keep the heel down.",
       "Lean forward until you feel a stretch in the calf."
     ]
   },
   {
-    aliases: ["jumping jacks", "jumping jack"],
-    name: "Jumping Jacks",
-    instructions: [
-      "Start standing with your feet together and arms by your sides.",
-      "Jump your feet out as you raise your arms overhead.",
-      "Continue at a comfortable speed and adjust the intensity as tolerated."
-    ]
-  },
-  {
-    aliases: ["clamshell", "clam shell", "clams"],
-    name: "Clamshell",
+    keys: ["clamshell", "clam shell"],
+    display: "Clamshell",
     instructions: [
       "Lie on your side with your knees bent and feet together.",
-      "Keep your feet touching as you lift your top knee upward.",
-      "Lower slowly without rolling your pelvis backward."
+      "Keep your feet touching as you lift the top knee upward.",
+      "Lower the knee back down with control without rolling your trunk backward."
     ]
   },
   {
-    aliases: ["wall sit", "wall squat hold"],
-    name: "Wall Sit",
+    keys: ["sls", "single leg stance", "single-leg stance"],
+    display: "Single Leg Stance",
     instructions: [
-      "Stand with your back against a wall and step your feet slightly forward.",
-      "Slide down the wall into a partial squat position.",
-      "Hold the position while keeping your weight even through both feet."
+      "Stand tall near a stable support if needed.",
+      "Lift one foot off the ground and balance on the other leg.",
+      "Keep your posture upright and maintain control throughout the hold or repetitions."
     ]
   },
   {
-    aliases: ["row", "band row", "cable row", "seated row"],
-    name: "Row",
+    keys: ["leg press"],
+    display: "Leg Press",
     instructions: [
-      "Start with your arms extended in front of you.",
-      "Pull your elbows back while keeping your shoulders relaxed.",
-      "Return slowly to the starting position."
+      "Place your feet on the platform about hip-width apart.",
+      "Press through your feet to straighten your legs in a controlled manner.",
+      "Slowly return to the starting position without letting the movement snap back."
     ]
   },
   {
-    aliases: ["side steps", "lateral walk", "monster walk", "band walk"],
-    name: "Lateral Band Walk",
+    keys: ["jumping jacks", "jumping jack"],
+    display: "Jumping Jacks",
     instructions: [
-      "Place the band around your legs and soften your knees slightly.",
-      "Step sideways with control while keeping tension on the band.",
-      "Keep your trunk steady and avoid letting your knees collapse inward."
+      "Start standing with your feet together and arms by your sides.",
+      "Jump your feet out while raising your arms overhead.",
+      "Continue at the prescribed pace and intensity, then return to the starting position."
+    ]
+  },
+  {
+    keys: ["wall sit", "wall squat hold"],
+    display: "Wall Sit",
+    instructions: [
+      "Stand with your back against a wall and slide down into a partial squat.",
+      "Keep your feet planted and your trunk supported by the wall.",
+      "Hold the position as prescribed, then stand back up with control."
+    ]
+  },
+  {
+    keys: ["side steps", "band walks", "lateral band walk", "monster walk"],
+    display: "Side Steps with Band",
+    instructions: [
+      "Place the band around your legs as instructed and slightly bend your knees.",
+      "Step sideways while keeping steady tension on the band.",
+      "Stay controlled and avoid letting your knees collapse inward."
     ]
   }
 ];
 
 setDefaultDate();
-loadSample();
 
+sampleBtn.addEventListener("click", loadSample);
 generateBtn.addEventListener("click", generateProgram);
-sampleBtn.addEventListener("click", () => {
-  loadSample();
-  generateProgram();
-});
 printBtn.addEventListener("click", () => {
   generateProgram();
   window.print();
 });
 emailBtn.addEventListener("click", openEmailDraft);
 copySummaryBtn.addEventListener("click", copySummary);
+editorListEl.addEventListener("input", handleEditorChange);
 
 function setDefaultDate() {
   const today = new Date();
@@ -132,270 +129,240 @@ function loadSample() {
   recipientEmailEl.value = "patient@example.com";
   programTitleEl.value = "Home Exercise Program";
   introTextEl.value = "Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.";
-  inputTextEl.value = `leg press 3x10 hold 5 sec\nSLS 2x15\njumping jacks 30s different intensities\ncalf stretch 2x30s each side\nbridge with band 3x12\nFrequency: daily`;
+  inputTextEl.value = `1) Pelvic Tilts – 2 x 10, 3-second holds\n2) Bridge – 3 x 8\n3) Calf Stretch – 2 x 30s each side\n4) Clamshell – 2 x 12 each side\nFrequency: daily`;
+  generateProgram();
 }
 
 function generateProgram() {
   const rawText = inputTextEl.value.trim();
-
-  syncPreviewHeader();
-
   if (!rawText) {
-    exercises = [];
-    renderEditors();
-    renderPreview();
+    editorListEl.innerHTML = `<p class="empty">Paste HEP text first.</p>`;
+    exerciseListEl.innerHTML = `<p class="empty">Paste HEP text first.</p>`;
     return;
   }
 
-  exercises = parseRoughInput(rawText);
+  parsedExercises = parseHEP(rawText);
   renderEditors();
   renderPreview();
 }
 
-function syncPreviewHeader() {
-  previewTitleEl.textContent = programTitleEl.value.trim() || "Home Exercise Program";
-  previewPatientEl.textContent = `Patient: ${patientNameEl.value.trim() || "—"}`;
-  previewDateEl.textContent = `Date: ${formatDate(programDateEl.value)}`;
-  previewIntroEl.textContent = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
-}
+function parseHEP(text) {
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
-function parseRoughInput(text) {
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-  const frequencyLine = lines.find(line => /^frequency:/i.test(line));
+  const frequencyLine = lines.find((line) => /^frequency:/i.test(line));
   const frequency = frequencyLine ? frequencyLine.replace(/^frequency:/i, "").trim() : "";
+  const exerciseLines = lines.filter((line) => !/^frequency:/i.test(line));
 
-  return lines
-    .filter(line => !/^frequency:/i.test(line))
-    .map((line, index) => buildExerciseObject(line, frequency, index));
+  return exerciseLines
+    .map((line) => parseLine(line, frequency))
+    .filter((item) => item.name);
 }
 
-function buildExerciseObject(line, frequency, index) {
-  const normalizedLine = line.toLowerCase();
-  const setsRepsMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)/i);
-  const holdMatch = normalizedLine.match(/hold\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/i);
-  const durationMatch = normalizedLine.match(/(?:^|\s)(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
-  const sideMatch = normalizedLine.match(/each side|per side|each leg|each arm|left|right/i);
-  const freqInlineMatch = normalizedLine.match(/daily|\d+\s*x\s*\/\s*week|\d+x\/week|\d+ times per week/i);
+function parseLine(line, frequency = "") {
+  let cleaned = line
+    .replace(/^\d+[\).\s-]*/, "")
+    .replace(/^•\s*/, "")
+    .trim();
 
-  const libraryMatch = matchExercise(normalizedLine);
-  const displayName = libraryMatch?.name || titleCase(guessExerciseName(line));
-  let instructions = libraryMatch?.instructions ? [...libraryMatch.instructions] : genericInstructions(displayName);
+  const dashSplit = cleaned.split(/\s+[–—-]\s+/);
+  let name = cleaned;
+  let details = "";
+  if (dashSplit.length >= 2) {
+    name = dashSplit[0].trim();
+    details = dashSplit.slice(1).join(" - ").trim();
+  }
 
-  let notes = line;
-  if (setsRepsMatch) notes = removeText(notes, setsRepsMatch[0]);
-  if (holdMatch) notes = removeText(notes, holdMatch[0]);
-  if (sideMatch) notes = removeText(notes, sideMatch[0]);
-  if (freqInlineMatch) notes = removeText(notes, freqInlineMatch[0]);
-
+  let sets = "";
+  let reps = "";
+  let hold = "";
   let duration = "";
-  if (durationMatch) {
-    const looksLikeSetsRepsDuration = setsRepsMatch && durationMatch.index !== undefined && durationMatch.index <= (setsRepsMatch.index + setsRepsMatch[0].length);
-    if (!holdMatch && !looksLikeSetsRepsDuration) {
-      duration = `${durationMatch[1]} ${normalizeTimeUnit(durationMatch[2])}`;
-      notes = removeText(notes, durationMatch[0]);
+  let side = "";
+  let notes = details;
+
+  const setsDurationMatch = details.match(/(\d+)\s*x\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  if (setsDurationMatch) {
+    sets = setsDurationMatch[1];
+    duration = `${setsDurationMatch[2]} ${normalizeTimeUnit(setsDurationMatch[3])}`;
+    notes = removeText(notes, setsDurationMatch[0]);
+  } else {
+    const setsRepsMatch = details.match(/(\d+)\s*x\s*(\d+)/i);
+    if (setsRepsMatch) {
+      sets = setsRepsMatch[1];
+      reps = setsRepsMatch[2];
+      notes = removeText(notes, setsRepsMatch[0]);
     }
   }
 
-  const qualifiers = extractQualifiers(line);
-  if (qualifiers.length) {
-    instructions = applyQualifiersToInstructions(instructions, qualifiers);
+  const holdMatch = details.match(/(?:hold\s*)?(\d+)\s*[-]?\s*(second|seconds|sec|secs)\s*holds?/i) || details.match(/hold\s*(\d+)\s*[-]?\s*(second|seconds|sec|secs)/i);
+  if (holdMatch) {
+    hold = `${holdMatch[1]} sec`;
+    notes = removeText(notes, holdMatch[0]);
   }
 
-  notes = cleanupNotes(notes);
+  const bareDurationMatch = !duration ? details.match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i) : null;
+  if (bareDurationMatch) {
+    duration = `${bareDurationMatch[1]} ${normalizeTimeUnit(bareDurationMatch[2])}`;
+    notes = removeText(notes, bareDurationMatch[0]);
+  }
+
+  const sideMatch = details.match(/each side|per side|each leg|each arm|each way/i);
+  if (sideMatch) {
+    side = sideMatch[0];
+    notes = removeText(notes, sideMatch[0]);
+  }
+
+  const match = findExerciseMatch(name);
+  const displayName = match ? match.display : toTitleCase(name);
+  const instructions = match ? [...match.instructions] : genericInstructions(displayName);
+
+  notes = notes.replace(/^,+|,+$/g, "").trim();
 
   return {
-    id: `ex-${index}-${Date.now()}`,
     raw_input: line,
-    display_name: displayName,
-    sets: setsRepsMatch ? setsRepsMatch[1] : "",
-    reps: setsRepsMatch ? setsRepsMatch[2] : "",
+    name: displayName,
+    sets,
+    reps,
+    hold,
     duration,
-    hold: holdMatch ? `${holdMatch[1]} ${normalizeTimeUnit(holdMatch[2])}` : "",
-    side: sideMatch ? sideMatch[0] : "",
-    frequency: freqInlineMatch ? freqInlineMatch[0] : frequency,
-    instructions,
-    notes
+    side,
+    frequency,
+    notes,
+    instructions
   };
 }
 
-function matchExercise(line) {
-  return EXERCISE_LIBRARY.find(item => item.aliases.some(alias => line.includes(alias)));
+function findExerciseMatch(name) {
+  const lower = name.toLowerCase();
+  return exerciseLibrary.find((item) => item.keys.some((key) => lower.includes(key)));
 }
 
-function guessExerciseName(line) {
-  let name = line
-    .replace(/^\d+[\).\s-]*/, "")
-    .replace(/(\d+)\s*x\s*(\d+)/ig, "")
-    .replace(/hold\s*\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/ig, "")
-    .replace(/\b\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/ig, "")
-    .replace(/each side|per side|each leg|each arm|left|right|daily|\d+x\/week/ig, "")
-    .trim();
-
-  if (!name) return "Exercise";
-  return name;
-}
-
-function extractQualifiers(line) {
-  const qualifiers = [];
-  const lower = line.toLowerCase();
-  ["with band", "slow", "different intensities", "modified", "on knees", "pain-free range"].forEach(q => {
-    if (lower.includes(q)) qualifiers.push(q);
-  });
-  return qualifiers;
-}
-
-function applyQualifiersToInstructions(instructions, qualifiers) {
-  const updated = [...instructions];
-
-  if (qualifiers.includes("with band")) {
-    updated[0] = updated[0].replace(/\.$/, "") + " with the band in place.";
-  }
-  if (qualifiers.includes("slow")) {
-    updated[updated.length - 1] = "Move slowly and stay controlled throughout each repetition.";
-  }
-  if (qualifiers.includes("different intensities")) {
-    updated[updated.length - 1] = "Adjust the speed or intensity to match your tolerance."
-  }
-  if (qualifiers.includes("modified")) {
-    updated.push("Use the modified version shown by your physiotherapist.");
-  }
-  if (qualifiers.includes("on knees")) {
-    updated.push("Use the knees-down variation if prescribed.");
-  }
-  if (qualifiers.includes("pain-free range")) {
-    updated.push("Stay within a comfortable pain-free range.");
-  }
-
-  return updated.slice(0, 4);
-}
-
-function genericInstructions(name) {
+function genericInstructions(displayName) {
   return [
-    `Set up for ${name.toLowerCase()} as shown by your physiotherapist.`,
-    "Perform the movement in a slow and controlled way.",
-    "Stay within a comfortable range and stop if symptoms significantly worsen."
+    `Set up for ${displayName.toLowerCase()} in a stable and comfortable position.`,
+    "Perform the movement in a slow, controlled manner.",
+    "Stay within a comfortable range and use the prescribed dosage."
   ];
 }
 
-function normalizeTimeUnit(unit) {
-  const value = unit.toLowerCase();
-  if (["s", "sec", "secs", "second", "seconds"].includes(value)) return "sec";
-  if (["min", "mins", "minute", "minutes"].includes(value)) return "min";
-  return unit;
-}
-
-function removeText(base, fragment) {
-  return base.replace(new RegExp(escapeRegExp(fragment), "ig"), " ");
-}
-
-function cleanupNotes(text) {
-  return text
-    .replace(/\s+/g, " ")
-    .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, "")
-    .trim();
-}
-
 function renderEditors() {
-  if (!exercises.length) {
-    editorListEl.innerHTML = `<p class="empty">Generate a program to review editable exercise cards.</p>`;
+  if (!parsedExercises.length) {
+    editorListEl.innerHTML = `<p class="empty">No exercises to edit.</p>`;
     return;
   }
 
-  editorListEl.innerHTML = exercises.map((exercise, index) => `
-    <article class="editor-card" data-id="${exercise.id}">
-      <div class="editor-header">
+  editorListEl.innerHTML = parsedExercises.map((exercise, index) => `
+    <div class="editor-card" data-index="${index}">
+      <div class="editor-grid">
         <div>
-          <h3>${index + 1}. ${escapeHtml(exercise.display_name)}</h3>
-          <span class="raw-chip">Raw input: ${escapeHtml(exercise.raw_input)}</span>
+          <div class="editor-label">Exercise name</div>
+          <input data-field="name" value="${escapeAttr(exercise.name)}" />
+        </div>
+        <div>
+          <div class="editor-label">Sets</div>
+          <input data-field="sets" value="${escapeAttr(exercise.sets)}" />
+        </div>
+        <div>
+          <div class="editor-label">Reps</div>
+          <input data-field="reps" value="${escapeAttr(exercise.reps)}" />
+        </div>
+        <div>
+          <div class="editor-label">Duration / Hold</div>
+          <input data-field="durationHold" value="${escapeAttr(joinDurationHold(exercise))}" />
         </div>
       </div>
-
-      <div class="grid two-col">
+      <div class="editor-subgrid">
         <div>
-          <label class="small-label">Display name</label>
-          <input data-field="display_name" value="${escapeAttribute(exercise.display_name)}" />
+          <div class="editor-label">Side / Frequency</div>
+          <input data-field="sideFrequency" value="${escapeAttr(joinSideFrequency(exercise))}" />
         </div>
         <div>
-          <label class="small-label">Frequency</label>
-          <input data-field="frequency" value="${escapeAttribute(exercise.frequency)}" />
-        </div>
-      </div>
-
-      <div class="grid three-col">
-        <div>
-          <label class="small-label">Sets</label>
-          <input data-field="sets" value="${escapeAttribute(exercise.sets)}" />
-        </div>
-        <div>
-          <label class="small-label">Reps</label>
-          <input data-field="reps" value="${escapeAttribute(exercise.reps)}" />
-        </div>
-        <div>
-          <label class="small-label">Duration</label>
-          <input data-field="duration" value="${escapeAttribute(exercise.duration)}" />
-        </div>
-        <div>
-          <label class="small-label">Hold</label>
-          <input data-field="hold" value="${escapeAttribute(exercise.hold)}" />
-        </div>
-        <div>
-          <label class="small-label">Side</label>
-          <input data-field="side" value="${escapeAttribute(exercise.side)}" />
-        </div>
-        <div>
-          <label class="small-label">Notes</label>
-          <input data-field="notes" value="${escapeAttribute(exercise.notes)}" />
+          <div class="editor-label">Notes</div>
+          <input data-field="notes" value="${escapeAttr(exercise.notes)}" />
         </div>
       </div>
-
-      <div class="field-block">
-        <label class="small-label">Instructions (one per line)</label>
-        <textarea data-field="instructions" rows="4">${escapeHtml(exercise.instructions.join("\n"))}</textarea>
+      <div style="margin-top:10px;">
+        <div class="editor-label">Instructions (one per line)</div>
+        <textarea data-field="instructions">${escapeHtml(exercise.instructions.join("\n"))}</textarea>
       </div>
-    </article>
+    </div>
   `).join("");
-
-  editorListEl.querySelectorAll("input, textarea").forEach(field => {
-    field.addEventListener("input", handleEditorChange);
-  });
 }
 
 function handleEditorChange(event) {
-  const card = event.target.closest(".editor-card");
-  const id = card.dataset.id;
-  const field = event.target.dataset.field;
-  const exercise = exercises.find(item => item.id === id);
-  if (!exercise) return;
+  const target = event.target;
+  const card = target.closest(".editor-card");
+  if (!card) return;
+  const index = Number(card.dataset.index);
+  const field = target.dataset.field;
+  if (Number.isNaN(index) || !field) return;
 
-  if (field === "instructions") {
-    exercise.instructions = event.target.value.split("\n").map(v => v.trim()).filter(Boolean);
-  } else {
-    exercise[field] = event.target.value;
+  const ex = parsedExercises[index];
+  const value = target.value;
+
+  if (field === "name") ex.name = value;
+  if (field === "sets") ex.sets = value;
+  if (field === "reps") ex.reps = value;
+  if (field === "notes") ex.notes = value;
+  if (field === "instructions") ex.instructions = value.split("\n").map(s => s.trim()).filter(Boolean);
+  if (field === "durationHold") {
+    ex.duration = "";
+    ex.hold = "";
+    const holdMatch = value.match(/hold\s*:?\s*(.+)$/i);
+    if (holdMatch) {
+      ex.hold = holdMatch[1].trim();
+    } else if (/sec|min|second|minute/i.test(value)) {
+      ex.duration = value.trim();
+    }
+  }
+  if (field === "sideFrequency") {
+    ex.side = "";
+    ex.frequency = "";
+    const parts = value.split(",").map(s => s.trim()).filter(Boolean);
+    if (parts[0]) ex.side = parts[0];
+    if (parts[1]) ex.frequency = parts[1];
+    if (parts.length === 1 && /(daily|week|x\/)/i.test(parts[0])) {
+      ex.frequency = parts[0];
+      ex.side = "";
+    }
   }
 
   renderPreview();
 }
 
 function renderPreview() {
-  syncPreviewHeader();
+  const title = programTitleEl.value.trim() || "Home Exercise Program";
+  const patient = patientNameEl.value.trim() || "—";
+  const date = formatDate(programDateEl.value);
+  const intro = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
 
-  if (!exercises.length) {
-    exerciseListEl.innerHTML = `<p class="empty">Generate a program to see the patient-ready preview.</p>`;
+  previewTitleEl.textContent = title;
+  previewPatientEl.textContent = `Patient: ${patient}`;
+  previewDateEl.textContent = `Date: ${date}`;
+  previewIntroEl.textContent = intro;
+
+  if (!parsedExercises.length) {
+    exerciseListEl.innerHTML = `<p class="empty">No exercises could be generated.</p>`;
     return;
   }
 
-  exerciseListEl.innerHTML = exercises.map((exercise, index) => {
+  exerciseListEl.innerHTML = parsedExercises.map((exercise, index) => {
     const dose = buildDoseString(exercise);
-    const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : "";
-    const instructions = exercise.instructions.length
-      ? `<ol class="instructions-list">${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
-      : "";
+    const notes = exercise.notes ? `<p class="exercise-notes"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</p>` : "";
+    const instructions = exercise.instructions?.length ? `
+      <ol class="instruction-list">
+        ${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}
+      </ol>` : "";
 
     return `
       <article class="exercise-card">
         <div class="exercise-top">
-          <p class="exercise-name">${index + 1}. ${escapeHtml(exercise.display_name || "Exercise")}</p>
-          <div class="exercise-dose">${escapeHtml(dose)}</div>
+          <div>
+            <p class="exercise-name">${index + 1}. ${escapeHtml(exercise.name || "Exercise")}</p>
+          </div>
+          <div class="exercise-dose">${escapeHtml(dose || "")}</div>
         </div>
         ${instructions}
         ${notes}
@@ -409,12 +376,21 @@ function buildDoseString(exercise) {
   if (exercise.sets && exercise.reps) parts.push(`${exercise.sets} sets x ${exercise.reps} reps`);
   else if (exercise.sets && exercise.duration) parts.push(`${exercise.sets} sets x ${exercise.duration}`);
   else if (exercise.duration) parts.push(exercise.duration);
-
   if (exercise.hold) parts.push(`${exercise.hold} hold`);
   if (exercise.side) parts.push(exercise.side);
   if (exercise.frequency) parts.push(exercise.frequency);
-
   return parts.join(" • ");
+}
+
+async function copySummary() {
+  generateProgram();
+  const summary = buildProgramSummary();
+  try {
+    await navigator.clipboard.writeText(summary);
+    alert("Program summary copied.");
+  } catch {
+    alert("Could not copy summary.");
+  }
 }
 
 function openEmailDraft() {
@@ -424,39 +400,49 @@ function openEmailDraft() {
     alert("Enter a recipient email first.");
     return;
   }
-
-  const subject = `${programTitleEl.value.trim() || "Home Exercise Program"} - ${formatDate(programDateEl.value)}`;
-  const body = buildSummaryText(true);
-  window.location.href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-async function copySummary() {
-  generateProgram();
-  try {
-    await navigator.clipboard.writeText(buildSummaryText(false));
-    alert("Program summary copied.");
-  } catch {
-    alert("Could not copy summary.");
-  }
-}
-
-function buildSummaryText(forEmail) {
-  const patient = patientNameEl.value.trim() || "Patient";
   const title = programTitleEl.value.trim() || "Home Exercise Program";
   const date = formatDate(programDateEl.value);
+  const body = buildProgramSummary(true);
+  const subject = `${title} - ${date}`;
+  const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailtoUrl;
+}
+
+function buildProgramSummary(includeGreeting = false) {
+  const title = programTitleEl.value.trim() || "Home Exercise Program";
+  const patient = patientNameEl.value.trim() || "Patient";
+  const date = formatDate(programDateEl.value);
+  const intro = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
+
   const lines = [];
+  if (includeGreeting) lines.push(`Hello ${patient},`, "");
+  lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", intro, "", "Exercises:");
 
-  if (forEmail) lines.push(`Hello ${patient},`, "");
-  lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", introTextEl.value.trim(), "", "Exercises:");
-
-  exercises.forEach((exercise, index) => {
-    lines.push(`${index + 1}. ${exercise.display_name}${buildDoseString(exercise) ? " — " + buildDoseString(exercise) : ""}`);
-    exercise.instructions.forEach(step => lines.push(`   - ${step}`));
-    if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
+  parsedExercises.forEach((exercise, index) => {
+    lines.push(`${index + 1}. ${exercise.name}`);
+    const dose = buildDoseString(exercise);
+    if (dose) lines.push(`Dosage: ${dose}`);
+    if (exercise.instructions?.length) {
+      lines.push("How to do it:");
+      exercise.instructions.forEach(step => lines.push(`- ${step}`));
+    }
+    if (exercise.notes) lines.push(`Notes: ${exercise.notes}`);
+    lines.push("");
   });
 
-  if (forEmail) lines.push("", "Please reply if you have any questions.");
+  if (includeGreeting) lines.push("Please reply if you have any questions.");
   return lines.join("\n");
+}
+
+function normalizeTimeUnit(unit) {
+  const value = unit.toLowerCase();
+  if (["s", "sec", "secs", "second", "seconds"].includes(value)) return "sec";
+  if (["min", "mins", "minute", "minutes"].includes(value)) return "min";
+  return unit;
+}
+
+function removeText(base, fragment) {
+  return base.replace(fragment, "").replace(/^[,\s]+|[,\s]+$/g, "").trim();
 }
 
 function formatDate(value) {
@@ -465,12 +451,17 @@ function formatDate(value) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function titleCase(str) {
-  return str.replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+function toTitleCase(str) {
+  return String(str).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function joinDurationHold(exercise) {
+  if (exercise.hold) return `hold: ${exercise.hold}`;
+  return exercise.duration || "";
+}
+
+function joinSideFrequency(exercise) {
+  return [exercise.side, exercise.frequency].filter(Boolean).join(", ");
 }
 
 function escapeHtml(str) {
@@ -482,6 +473,10 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function escapeAttribute(str) {
-  return escapeHtml(String(str ?? ""));
+function escapeAttr(str) {
+  return String(str || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
