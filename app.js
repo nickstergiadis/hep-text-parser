@@ -294,6 +294,9 @@ function buildExerciseObject(line, frequency, index) {
   }
 
   notes = cleanupNotes(notes);
+  if (isLikelyParsingArtifact(notes)) {
+    notes = "";
+  }
 
   const normalizedNotes = normalizeNoteComparison(notes);
   const normalizedDisplayName = normalizeNoteComparison(displayName);
@@ -405,6 +408,13 @@ function normalizeNoteComparison(text) {
   return String(text || "")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
+}
+
+function isLikelyParsingArtifact(text) {
+  const normalized = normalizeNoteComparison(text);
+  if (!normalized) return false;
+  if (normalized.length > 3) return false;
+  return /^[secmin]+$/.test(normalized);
 }
 
 function renderEditors() {
