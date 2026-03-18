@@ -404,6 +404,7 @@ function removeText(base, fragment) {
 
 function cleanupNotes(text) {
   return text
+    .replace(/\b(?:ec|sc)\b/ig, " ")
     .replace(/\s+/g, " ")
     .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, "")
     .trim();
