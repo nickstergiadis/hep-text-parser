@@ -24,6 +24,7 @@ const editorListEl = document.getElementById("editorList");
 
 let exercises = [];
 let lastParsedInputText = "";
+const TIME_UNIT_PATTERN = "(seconds?|secs?|minutes?|mins?|sec|min|s)";
 
 const EXERCISE_LIBRARY = [
   {
@@ -253,10 +254,10 @@ function parseRoughInput(text) {
 
 function buildExerciseObject(line, frequency, index) {
   const normalizedLine = line.toLowerCase();
-  const setsDurationMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  const setsDurationMatch = normalizedLine.match(new RegExp(`(\\d+)\\s*x\\s*(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
   const setsRepsMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)/i);
-  const holdMatch = normalizedLine.match(/hold\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/i);
-  const durationMatch = normalizedLine.match(/(?:^|\s)(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  const holdMatch = normalizedLine.match(new RegExp(`hold\\s*(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
+  const durationMatch = normalizedLine.match(new RegExp(`(?:^|\\s)(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
   const sideMatch = normalizedLine.match(/each side|per side|each leg|each arm|left|right/i);
   const freqInlineMatch = normalizedLine.match(/daily|\d+\s*x\s*\/\s*week|\d+x\/week|\d+ times per week/i);
 
@@ -293,6 +294,18 @@ function buildExerciseObject(line, frequency, index) {
   }
 
   notes = cleanupNotes(notes);
+  if (isLikelyParsingArtifact(notes)) {
+    notes = "";
+  }
+
+  const normalizedNotes = normalizeNoteComparison(notes);
+  const normalizedDisplayName = normalizeNoteComparison(displayName);
+  const looksLikeNameOnly = normalizedNotes && normalizedDisplayName && normalizedNotes === normalizedDisplayName;
+  const looksLikeAliasOnly = libraryMatch?.aliases?.some(alias => normalizeNoteComparison(alias) === normalizedNotes);
+
+  if ((!notes || looksLikeNameOnly || looksLikeAliasOnly) && libraryMatch?.keyNote) {
+    notes = libraryMatch.keyNote;
+  }
 
   const looksLikeNameOnly = notes && displayName && notes.toLowerCase() === displayName.toLowerCase();
   if ((!notes || looksLikeNameOnly) && libraryMatch?.keyNote) {
@@ -327,8 +340,8 @@ function guessExerciseName(line) {
   let name = line
     .replace(/^\d+[\).\s-]*/, "")
     .replace(/(\d+)\s*x\s*(\d+)/ig, "")
-    .replace(/hold\s*\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/ig, "")
-    .replace(/\b\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/ig, "")
+    .replace(new RegExp(`hold\\s*\\d+\\s*${TIME_UNIT_PATTERN}\\b`, "ig"), "")
+    .replace(new RegExp(`\\b\\d+\\s*${TIME_UNIT_PATTERN}\\b`, "ig"), "")
     .replace(/each side|per side|each leg|each arm|left|right|daily|\d+x\/week/ig, "")
     .trim();
 
@@ -394,6 +407,19 @@ function cleanupNotes(text) {
     .replace(/\s+/g, " ")
     .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, "")
     .trim();
+}
+
+function normalizeNoteComparison(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isLikelyParsingArtifact(text) {
+  const normalized = normalizeNoteComparison(text);
+  if (!normalized) return false;
+  if (normalized.length > 3) return false;
+  return /^[secmin]+$/.test(normalized);
 }
 
 function renderEditors() {
