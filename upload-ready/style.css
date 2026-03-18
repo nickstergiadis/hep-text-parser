@@ -1,0 +1,299 @@
+:root {
+  --bg: #f3f4f6;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --soft: #f9fafb;
+  --btn: #111827;
+  --accent: #dbeafe;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1380px;
+  margin: 20px auto 40px;
+  padding: 0 18px;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: minmax(620px, 1.2fr) minmax(420px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.workspace-column,
+.preview-column {
+  min-width: 0;
+}
+
+.card,
+.program-sheet {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.card { margin-bottom: 18px; }
+
+.preview-column .program-sheet {
+  position: sticky;
+  top: 16px;
+  min-height: calc(100vh - 32px);
+  overflow: auto;
+}
+
+.editor-shell #editorList {
+  max-height: 48vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.header-row,
+.section-title-row,
+.program-header,
+.exercise-top,
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+h1,h2,h3,h4,p { margin-top: 0; }
+.subtitle,
+.section-note,
+.muted,
+.helper {
+  color: var(--muted);
+}
+
+.badge {
+  background: var(--accent);
+  color: #1d4ed8;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 16px;
+}
+
+.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #cfd4dc;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  background: #fff;
+}
+
+textarea { resize: vertical; }
+.field-block { margin-bottom: 16px; }
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 15px;
+  background: var(--btn);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+button:hover { opacity: 0.95; }
+
+#editorList,
+.exercise-list {
+  display: grid;
+  gap: 14px;
+}
+
+.editor-card,
+.exercise-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff;
+}
+
+.editor-card {
+  background: var(--soft);
+}
+
+.exercise-name {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.exercise-dose {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.instructions-list {
+  margin: 8px 0 0 18px;
+  padding: 0;
+  line-height: 1.55;
+}
+
+.instructions-list li { margin-bottom: 5px; }
+
+
+.video-links {
+  margin-top: 10px;
+}
+
+.video-links ul {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.video-links a {
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.note-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--soft);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.program-header {
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.intro-box {
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.small-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.raw-chip {
+  display: inline-block;
+  margin-top: 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+  .preview-column .program-sheet {
+    position: static;
+    min-height: 560px;
+    overflow: visible;
+  }
+  .editor-shell #editorList {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .two-col,
+  .three-col {
+    grid-template-columns: 1fr;
+  }
+  .header-row,
+  .section-title-row,
+  .program-header,
+  .exercise-top,
+  .editor-header {
+    flex-direction: column;
+  }
+  .exercise-dose { white-space: normal; }
+}
+
+@media print {
+  body { background: #fff; }
+  .no-print { display: none !important; }
+  .container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .app-layout {
+    display: block;
+  }
+  .preview-column .program-sheet,
+  .program-sheet {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    min-height: auto;
+    overflow: visible;
+    position: static;
+  }
+  .exercise-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  @page {
+    size: auto;
+    margin: 16mm;
+  }
+}
