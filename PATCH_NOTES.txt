@@ -1,0 +1,12 @@
+PATCH NOTES
+
+This build improves parser quality rather than layout.
+
+Key fixes:
+- removes low-value note leftovers such as stray 'ec'
+- upgrades 'bridge with band' to a cleaner exercise label and instructions
+- preserves useful modifiers instead of dumping all residue into notes
+- keeps editable workflow intact
+
+Known limitation:
+- this is still local parsing/template logic, not real AI interpretation
