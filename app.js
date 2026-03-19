@@ -654,24 +654,13 @@ function buildSummaryText(forEmail) {
   lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", introTextEl.value.trim(), "", "Exercises:");
 
   exercises.forEach((exercise, index) => {
-    if (index > 0 && forEmail) {
-      lines.push("", "----------------------------------------", "");
-    } else if (index > 0) {
-      lines.push("");
-    }
+    if (index > 0) lines.push("", "");
 
     lines.push(`${index + 1}. ${exercise.display_name}${buildDoseString(exercise) ? " — " + buildDoseString(exercise) : ""}`);
     exercise.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       lines.push("   - Instructional videos:");
-      exercise.video_links.forEach((url, idx) => {
-        if (forEmail) {
-          lines.push(`      Video ${idx + 1}:`);
-          lines.push(`      ${url}`);
-        } else {
-          lines.push(`      ${idx + 1}) ${url}`);
-        }
-      });
+      exercise.video_links.forEach(url => lines.push(`      ${url}`));
     }
     if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
   });
