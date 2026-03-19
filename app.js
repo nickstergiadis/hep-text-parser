@@ -325,6 +325,11 @@ function buildExerciseObject(line, frequency, index) {
     notes = libraryMatch.keyNote;
   }
 
+  const looksLikeNameOnly = notes && displayName && notes.toLowerCase() === displayName.toLowerCase();
+  if ((!notes || looksLikeNameOnly) && libraryMatch?.keyNote) {
+    notes = libraryMatch.keyNote;
+  }
+
   return {
     id: `ex-${index}-${Date.now()}`,
     raw_input: line,
