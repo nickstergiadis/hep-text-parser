@@ -573,7 +573,10 @@ function renderPreview() {
       ? `<ol class="instructions-list">${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
       : "";
     const videos = (exercise.video_links || []).length
-      ? `<div class="video-links"><strong>Instructional videos:</strong><ul>${exercise.video_links.map((url, i) => `<li><a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer">Option ${i + 1}</a></li>`).join("")}</ul></div>`
+      ? `<div class="video-links"><strong>Instructional videos:</strong><ul>${exercise.video_links.map(url => {
+        const normalizedUrl = normalizeVideoUrl(url);
+        return `<li><a href="${escapeAttribute(normalizedUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(normalizedUrl)}</a></li>`;
+      }).join("")}</ul></div>`
       : "";
 
     return `
@@ -660,7 +663,7 @@ function buildSummaryText(forEmail) {
     exercise.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       lines.push("   - Instructional videos:");
-      exercise.video_links.forEach(url => lines.push(`      ${url}`));
+      exercise.video_links.forEach(url => lines.push(`   - ${normalizeVideoUrl(url)}`));
     }
     if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
   });
@@ -694,4 +697,11 @@ function escapeHtml(str) {
 
 function escapeAttribute(str) {
   return escapeHtml(String(str ?? ""));
+}
+
+function normalizeVideoUrl(url) {
+  const trimmed = String(url ?? "").trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
 }
