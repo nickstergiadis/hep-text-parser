@@ -178,36 +178,29 @@ function initializeApp() {
 }
 
 function cacheElements() {
-  patientNameEl = pickFirstById(["patientName", "ptName", "name"]);
-  recipientEmailEl = pickFirstById(["recipientEmail", "patientEmail", "email"]);
-  programTitleEl = pickFirstById(["programTitle", "title"]);
-  programDateEl = pickFirstById(["programDate", "date"]);
-  introTextEl = pickFirstById(["introText", "intro", "instructionsIntro"]);
-  inputTextEl = pickFirstById(["inputText", "exerciseInput", "roughInput"])
-    || Array.from(document.querySelectorAll("textarea")).find(el => /rough exercise list|examples:/i.test(el.placeholder || ""));
+  patientNameEl = document.getElementById("patientName");
+  recipientEmailEl = document.getElementById("recipientEmail");
+  programTitleEl = document.getElementById("programTitle");
+  programDateEl = document.getElementById("programDate");
+  introTextEl = document.getElementById("introText");
+  inputTextEl = document.getElementById("inputText");
 
-  sampleBtn = pickFirstById(["sampleBtn", "loadSampleBtn"])
+  sampleBtn = document.getElementById("sampleBtn")
+    || document.getElementById("loadSampleBtn")
     || Array.from(document.querySelectorAll("button")).find(btn => /load sample/i.test(btn.textContent || ""));
-  generateBtn = pickFirstById(["generateBtn", "generateExercisesBtn"])
+  generateBtn = document.getElementById("generateBtn")
+    || document.getElementById("generateExercisesBtn")
     || Array.from(document.querySelectorAll("button")).find(btn => /generate\s+(program|exercises?)/i.test(btn.textContent || ""));
-  printBtn = pickFirstById(["printBtn", "downloadBtn"]);
-  emailBtn = pickFirstById(["emailBtn"]);
-  copySummaryBtn = pickFirstById(["copySummaryBtn"]);
+  printBtn = document.getElementById("printBtn");
+  emailBtn = document.getElementById("emailBtn");
+  copySummaryBtn = document.getElementById("copySummaryBtn");
 
-  previewTitleEl = pickFirstById(["previewTitle"]);
-  previewPatientEl = pickFirstById(["previewPatient"]);
-  previewDateEl = pickFirstById(["previewDate"]);
-  previewIntroEl = pickFirstById(["previewIntro"]);
-  exerciseListEl = pickFirstById(["exerciseList", "previewExerciseList"]);
-  editorListEl = pickFirstById(["editorList", "exerciseEditorList"]);
-}
-
-function pickFirstById(ids) {
-  for (const id of ids) {
-    const found = document.getElementById(id);
-    if (found) return found;
-  }
-  return null;
+  previewTitleEl = document.getElementById("previewTitle");
+  previewPatientEl = document.getElementById("previewPatient");
+  previewDateEl = document.getElementById("previewDate");
+  previewIntroEl = document.getElementById("previewIntro");
+  exerciseListEl = document.getElementById("exerciseList");
+  editorListEl = document.getElementById("editorList");
 }
 
 function bindActionButtons() {
