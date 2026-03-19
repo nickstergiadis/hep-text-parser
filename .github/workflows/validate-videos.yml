@@ -1,0 +1,26 @@
+name: Validate approved videos
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+      - run: node scripts/validate-videos.js
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      - name: Upload validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-validation-report
+          path: |
+            data/video_validation_report.json
+            reports/validation_summary.md

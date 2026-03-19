@@ -1,0 +1,44 @@
+[
+  {
+    "exercise_id": "bridge",
+    "canonical_name": "Bridge",
+    "youtube_video_id": "m2Zx-57cSok",
+    "title": "Glute Bridge Exercise",
+    "description": "Simple glute bridge form demonstration for rehab.",
+    "channel_title": "Physio Tutoring",
+    "duration_seconds": 74,
+    "embeddable": true,
+    "public": true,
+    "url": "https://www.youtube.com/watch?v=m2Zx-57cSok",
+    "embed_url": "https://www.youtube.com/embed/m2Zx-57cSok",
+    "confidence_tier": "APPROVED_HIGH_CONFIDENCE",
+    "score": 91,
+    "reasons": [
+      "Seeded whitelist starter entry from existing repository video references."
+    ],
+    "active": true,
+    "source": "seed",
+    "approved_at": "2026-03-19T00:00:00.000Z"
+  },
+  {
+    "exercise_id": "clamshell",
+    "canonical_name": "Clamshell",
+    "youtube_video_id": "EG5_gXcfozw",
+    "title": "Clamshell Exercise Tutorial",
+    "description": "Clinical clamshell setup and form cues.",
+    "channel_title": "Physio Tutoring",
+    "duration_seconds": 82,
+    "embeddable": true,
+    "public": true,
+    "url": "https://www.youtube.com/watch?v=EG5_gXcfozw",
+    "embed_url": "https://www.youtube.com/embed/EG5_gXcfozw",
+    "confidence_tier": "APPROVED_HIGH_CONFIDENCE",
+    "score": 90,
+    "reasons": [
+      "Seeded whitelist starter entry from existing repository video references."
+    ],
+    "active": true,
+    "source": "seed",
+    "approved_at": "2026-03-19T00:00:00.000Z"
+  }
+]
