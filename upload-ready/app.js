@@ -24,11 +24,13 @@ const editorListEl = document.getElementById("editorList");
 
 let exercises = [];
 let lastParsedInputText = "";
+const TIME_UNIT_PATTERN = "(seconds?|secs?|minutes?|mins?|sec|min|s)";
 
 const EXERCISE_LIBRARY = [
   {
     aliases: ["sls", "single leg stance", "single-leg stance", "single leg balance"],
     name: "Single Leg Stance",
+    keyNote: "Keep your pelvis level and avoid leaning your trunk to the side.",
     instructions: [
       "Stand tall near a stable surface for support if needed.",
       "Lift one foot off the floor and balance on the other leg.",
@@ -43,6 +45,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["bridge", "glute bridge", "bridging", "bridge with band"],
     name: "Bridge",
+    keyNote: "Squeeze your glutes first and do not arch through your lower back.",
     instructions: [
       "Lie on your back with your knees bent and feet flat on the floor.",
       "Tighten your glutes and lift your hips until your body forms a straight line.",
@@ -57,6 +60,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["leg press"],
     name: "Leg Press",
+    keyNote: "Keep your knees tracking in line with your toes and avoid locking them out.",
     instructions: [
       "Sit with your feet flat on the platform about hip-width apart.",
       "Press through your feet to straighten your legs in a controlled way.",
@@ -71,6 +75,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["calf stretch", "gastroc stretch", "gastrocnemius stretch"],
     name: "Calf Stretch",
+    keyNote: "Keep your back heel down and your rear knee straight to target the calf.",
     instructions: [
       "Stand facing a wall and place your hands on the wall for support.",
       "Step one foot back and keep that heel down on the floor.",
@@ -85,6 +90,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["jumping jacks", "jumping jack"],
     name: "Jumping Jacks",
+    keyNote: "Land softly with knees slightly bent and keep your core braced.",
     instructions: [
       "Start standing with your feet together and arms by your sides.",
       "Jump your feet out as you raise your arms overhead.",
@@ -99,6 +105,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["clamshell", "clam shell", "clams"],
     name: "Clamshell",
+    keyNote: "Keep your feet together and avoid rolling your pelvis backward.",
     instructions: [
       "Lie on your side with your knees bent and feet together.",
       "Keep your feet touching as you lift your top knee upward.",
@@ -113,6 +120,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["wall sit", "wall squat hold"],
     name: "Wall Sit",
+    keyNote: "Keep your back flat on the wall and your knees over your ankles.",
     instructions: [
       "Stand with your back against a wall and step your feet slightly forward.",
       "Slide down the wall into a partial squat position.",
@@ -127,6 +135,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["row", "band row", "cable row", "seated row"],
     name: "Row",
+    keyNote: "Keep your shoulders down and squeeze your shoulder blades together.",
     instructions: [
       "Start with your arms extended in front of you.",
       "Pull your elbows back while keeping your shoulders relaxed.",
@@ -141,6 +150,7 @@ const EXERCISE_LIBRARY = [
   {
     aliases: ["side steps", "lateral walk", "monster walk", "band walk"],
     name: "Lateral Band Walk",
+    keyNote: "Maintain tension on the band and keep your knees from collapsing inward.",
     instructions: [
       "Place the band around your legs and soften your knees slightly.",
       "Step sideways with control while keeping tension on the band.",
@@ -157,27 +167,45 @@ const EXERCISE_LIBRARY = [
 setDefaultDate();
 renderEditors();
 renderPreview();
+bindActionButtons();
 
-if (generateBtn) {
-  generateBtn.addEventListener("click", generateProgram);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bindActionButtons, { once: true });
 }
-if (sampleBtn) {
-  sampleBtn.addEventListener("click", () => {
-    loadSample();
-    generateProgram();
-  });
-}
-if (printBtn) {
-  printBtn.addEventListener("click", () => {
-    if (!ensureProgramForActions()) return;
-    window.print();
-  });
-}
-if (emailBtn) {
-  emailBtn.addEventListener("click", openEmailDraft);
-}
-if (copySummaryBtn) {
-  copySummaryBtn.addEventListener("click", copySummary);
+
+function bindActionButtons() {
+  const liveGenerateBtn = document.getElementById("generateBtn") || generateBtn;
+  const liveSampleBtn = document.getElementById("sampleBtn") || sampleBtn;
+  const livePrintBtn = document.getElementById("printBtn") || printBtn;
+  const liveEmailBtn = document.getElementById("emailBtn") || emailBtn;
+  const liveCopySummaryBtn = document.getElementById("copySummaryBtn") || copySummaryBtn;
+
+  if (liveGenerateBtn && !liveGenerateBtn.dataset.boundGenerate) {
+    liveGenerateBtn.addEventListener("click", generateProgram);
+    liveGenerateBtn.dataset.boundGenerate = "true";
+  }
+  if (liveSampleBtn && !liveSampleBtn.dataset.boundSample) {
+    liveSampleBtn.addEventListener("click", () => {
+      loadSample();
+      generateProgram();
+    });
+    liveSampleBtn.dataset.boundSample = "true";
+  }
+  if (livePrintBtn && !livePrintBtn.dataset.boundPrint) {
+    livePrintBtn.addEventListener("click", () => {
+      if (!ensureProgramForActions()) return;
+      window.print();
+    });
+    livePrintBtn.dataset.boundPrint = "true";
+  }
+  if (liveEmailBtn && !liveEmailBtn.dataset.boundEmail) {
+    liveEmailBtn.addEventListener("click", openEmailDraft);
+    liveEmailBtn.dataset.boundEmail = "true";
+  }
+  if (liveCopySummaryBtn && !liveCopySummaryBtn.dataset.boundCopySummary) {
+    liveCopySummaryBtn.addEventListener("click", copySummary);
+    liveCopySummaryBtn.dataset.boundCopySummary = "true";
+  }
 }
 
 function setDefaultDate() {
@@ -244,10 +272,10 @@ function parseRoughInput(text) {
 
 function buildExerciseObject(line, frequency, index) {
   const normalizedLine = line.toLowerCase();
-  const setsDurationMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  const setsDurationMatch = normalizedLine.match(new RegExp(`(\\d+)\\s*x\\s*(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
   const setsRepsMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)/i);
-  const holdMatch = normalizedLine.match(/hold\s*(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/i);
-  const durationMatch = normalizedLine.match(/(?:^|\s)(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  const holdMatch = normalizedLine.match(new RegExp(`hold\\s*(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
+  const durationMatch = normalizedLine.match(new RegExp(`(?:^|\\s)(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, "i"));
   const sideMatch = normalizedLine.match(/each side|per side|each leg|each arm|left|right/i);
   const freqInlineMatch = normalizedLine.match(/daily|\d+\s*x\s*\/\s*week|\d+x\/week|\d+ times per week/i);
 
@@ -276,7 +304,26 @@ function buildExerciseObject(line, frequency, index) {
     instructions = applyQualifiersToInstructions(instructions, qualifiers);
   }
 
+  if (libraryMatch) {
+    libraryMatch.aliases.forEach(alias => {
+      const aliasPattern = new RegExp(`\\b${escapeRegExp(alias)}\\b`, "ig");
+      notes = notes.replace(aliasPattern, " ");
+    });
+  }
+
   notes = cleanupNotes(notes);
+  if (isLikelyParsingArtifact(notes)) {
+    notes = "";
+  }
+
+  const normalizedNotes = normalizeNoteComparison(notes);
+  const normalizedDisplayName = normalizeNoteComparison(displayName);
+  const looksLikeNameOnly = normalizedNotes && normalizedDisplayName && normalizedNotes === normalizedDisplayName;
+  const looksLikeAliasOnly = libraryMatch?.aliases?.some(alias => normalizeNoteComparison(alias) === normalizedNotes);
+
+  if ((!notes || looksLikeNameOnly || looksLikeAliasOnly) && libraryMatch?.keyNote) {
+    notes = libraryMatch.keyNote;
+  }
 
   return {
     id: `ex-${index}-${Date.now()}`,
@@ -306,8 +353,8 @@ function guessExerciseName(line) {
   let name = line
     .replace(/^\d+[\).\s-]*/, "")
     .replace(/(\d+)\s*x\s*(\d+)/ig, "")
-    .replace(/hold\s*\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)/ig, "")
-    .replace(/\b\d+\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/ig, "")
+    .replace(new RegExp(`hold\\s*\\d+\\s*${TIME_UNIT_PATTERN}\\b`, "ig"), "")
+    .replace(new RegExp(`\\b\\d+\\s*${TIME_UNIT_PATTERN}\\b`, "ig"), "")
     .replace(/each side|per side|each leg|each arm|left|right|daily|\d+x\/week/ig, "")
     .trim();
 
@@ -370,9 +417,23 @@ function removeText(base, fragment) {
 
 function cleanupNotes(text) {
   return text
+    .replace(/\b(?:ec|sc)\b/ig, " ")
     .replace(/\s+/g, " ")
     .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, "")
     .trim();
+}
+
+function normalizeNoteComparison(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function isLikelyParsingArtifact(text) {
+  const normalized = normalizeNoteComparison(text);
+  if (!normalized) return false;
+  if (normalized.length > 3) return false;
+  return /^[secmin]+$/.test(normalized);
 }
 
 function renderEditors() {
