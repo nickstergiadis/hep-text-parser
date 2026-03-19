@@ -648,22 +648,36 @@ function buildSummaryText(forEmail) {
   const title = programTitleEl.value.trim() || "Home Exercise Program";
   const date = formatDate(programDateEl.value);
   const lines = [];
+  const newline = forEmail ? "\r\n" : "\n";
 
   if (forEmail) lines.push(`Hello ${patient},`, "");
   lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", introTextEl.value.trim(), "", "Exercises:");
 
   exercises.forEach((exercise, index) => {
+    if (index > 0 && forEmail) {
+      lines.push("", "----------------------------------------", "");
+    } else if (index > 0) {
+      lines.push("");
+    }
+
     lines.push(`${index + 1}. ${exercise.display_name}${buildDoseString(exercise) ? " — " + buildDoseString(exercise) : ""}`);
     exercise.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       lines.push("   - Instructional videos:");
-      exercise.video_links.forEach((url, idx) => lines.push(`      ${idx + 1}) ${url}`));
+      exercise.video_links.forEach((url, idx) => {
+        if (forEmail) {
+          lines.push(`      Video ${idx + 1}:`);
+          lines.push(`      ${url}`);
+        } else {
+          lines.push(`      ${idx + 1}) ${url}`);
+        }
+      });
     }
     if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
   });
 
   if (forEmail) lines.push("", "Please reply if you have any questions.");
-  return lines.join("\n");
+  return lines.join(newline);
 }
 
 function formatDate(value) {
