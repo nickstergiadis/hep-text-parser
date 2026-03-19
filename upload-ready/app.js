@@ -63,9 +63,9 @@ const EXERCISE_LIBRARY = [
       "Return slowly to the starting position without letting the weight drop."
     ],
     videos: [
-      "https://www.youtube.com/watch?v=ahaJTts1f3s",
-      "https://www.youtube.com/watch?v=IZxyjW7MPJQ",
-      "https://www.youtube.com/watch?v=QOVaHwm-Q6U"
+      "https://www.youtube.com/results?search_query=leg+press+exercise+form",
+      "https://www.youtube.com/results?search_query=seated+leg+press+machine+tutorial",
+      "https://www.youtube.com/results?search_query=physical+therapy+leg+press+exercise"
     ]
   },
   {
