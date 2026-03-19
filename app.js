@@ -334,6 +334,9 @@ function buildExerciseObject(line, frequency, index) {
   const qualifiers = extractQualifiers(line);
   if (qualifiers.length) {
     instructions = applyQualifiersToInstructions(instructions, qualifiers);
+    qualifiers.forEach(qualifier => {
+      notes = removeText(notes, qualifier);
+    });
   }
 
   if (libraryMatch) {
