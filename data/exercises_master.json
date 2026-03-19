@@ -1,0 +1,905 @@
+[
+  {
+    "exercise_id": "sls",
+    "canonical_name": "Single Leg Stance",
+    "aliases": [
+      "sls",
+      "single leg stance",
+      "single-leg balance"
+    ],
+    "body_region": "lower_extremity",
+    "equipment": "none",
+    "movement_tags": [
+      "balance",
+      "single_leg_control"
+    ],
+    "contraindication_tags": [
+      "acute_ankle_sprain_unstable"
+    ],
+    "instructions_short": "Balance on one leg near support."
+  },
+  {
+    "exercise_id": "bridge",
+    "canonical_name": "Bridge",
+    "aliases": [
+      "bridge",
+      "glute bridge",
+      "supine bridge"
+    ],
+    "body_region": "hip_lumbar",
+    "equipment": "none",
+    "movement_tags": [
+      "hip_extension",
+      "glute_activation"
+    ],
+    "contraindication_tags": [
+      "lumbar_extension_intolerance"
+    ],
+    "instructions_short": "Lift hips while keeping ribs down."
+  },
+  {
+    "exercise_id": "clamshell",
+    "canonical_name": "Clamshell",
+    "aliases": [
+      "clamshell",
+      "clam shell"
+    ],
+    "body_region": "hip",
+    "equipment": "band",
+    "movement_tags": [
+      "hip_abduction",
+      "external_rotation"
+    ],
+    "contraindication_tags": [
+      "lateral_hip_pain_high_irritability"
+    ],
+    "instructions_short": "Open top knee without rolling pelvis."
+  },
+  {
+    "exercise_id": "lateral_band_walk",
+    "canonical_name": "Lateral Band Walk",
+    "aliases": [
+      "lateral band walk",
+      "monster walk",
+      "band walk"
+    ],
+    "body_region": "hip_knee",
+    "equipment": "band",
+    "movement_tags": [
+      "frontal_plane_control",
+      "hip_abduction"
+    ],
+    "contraindication_tags": [
+      "acute_knee_flare"
+    ],
+    "instructions_short": "Step sideways with constant band tension."
+  },
+  {
+    "exercise_id": "calf_stretch",
+    "canonical_name": "Calf Stretch",
+    "aliases": [
+      "calf stretch",
+      "gastroc stretch"
+    ],
+    "body_region": "ankle",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "dorsiflexion"
+    ],
+    "contraindication_tags": [
+      "acute_achilles_tear"
+    ],
+    "instructions_short": "Lean into wall with heel down."
+  },
+  {
+    "exercise_id": "hamstring_stretch_supine",
+    "canonical_name": "Supine Hamstring Stretch",
+    "aliases": [
+      "supine hamstring stretch",
+      "hamstring stretch strap"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "strap",
+    "movement_tags": [
+      "mobility",
+      "hamstring_length"
+    ],
+    "contraindication_tags": [
+      "acute_proximal_hamstring_tear"
+    ],
+    "instructions_short": "Raise leg with strap keeping knee mostly straight."
+  },
+  {
+    "exercise_id": "quad_set",
+    "canonical_name": "Quad Set",
+    "aliases": [
+      "quad set",
+      "quadriceps set"
+    ],
+    "body_region": "knee",
+    "equipment": "towel",
+    "movement_tags": [
+      "isometric",
+      "quad_activation"
+    ],
+    "contraindication_tags": [
+      "none_specific"
+    ],
+    "instructions_short": "Press knee down and tighten thigh."
+  },
+  {
+    "exercise_id": "straight_leg_raise",
+    "canonical_name": "Straight Leg Raise",
+    "aliases": [
+      "straight leg raise",
+      "slr"
+    ],
+    "body_region": "hip_knee",
+    "equipment": "none",
+    "movement_tags": [
+      "hip_flexion",
+      "quad_control"
+    ],
+    "contraindication_tags": [
+      "hip_flexor_irritability"
+    ],
+    "instructions_short": "Lift straight leg without knee bend."
+  },
+  {
+    "exercise_id": "short_arc_quad",
+    "canonical_name": "Short Arc Quad",
+    "aliases": [
+      "short arc quad",
+      "saq"
+    ],
+    "body_region": "knee",
+    "equipment": "bolster",
+    "movement_tags": [
+      "knee_extension",
+      "quad_activation"
+    ],
+    "contraindication_tags": [
+      "patellofemoral_irritability_high"
+    ],
+    "instructions_short": "Straighten knee over bolster."
+  },
+  {
+    "exercise_id": "terminal_knee_extension_band",
+    "canonical_name": "Terminal Knee Extension",
+    "aliases": [
+      "terminal knee extension",
+      "tke band"
+    ],
+    "body_region": "knee",
+    "equipment": "band",
+    "movement_tags": [
+      "knee_extension",
+      "closed_chain_control"
+    ],
+    "contraindication_tags": [
+      "acute_locked_knee"
+    ],
+    "instructions_short": "Press knee straight against band."
+  },
+  {
+    "exercise_id": "sit_to_stand",
+    "canonical_name": "Sit to Stand",
+    "aliases": [
+      "sit to stand",
+      "chair squat"
+    ],
+    "body_region": "hip_knee",
+    "equipment": "chair",
+    "movement_tags": [
+      "functional_strength",
+      "squat_pattern"
+    ],
+    "contraindication_tags": [
+      "strict_non_weightbearing"
+    ],
+    "instructions_short": "Stand from chair with controlled descent."
+  },
+  {
+    "exercise_id": "step_up_forward",
+    "canonical_name": "Forward Step Up",
+    "aliases": [
+      "step up",
+      "forward step up"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "step",
+    "movement_tags": [
+      "single_leg_strength",
+      "functional_control"
+    ],
+    "contraindication_tags": [
+      "high_irritability_patellar_tendon"
+    ],
+    "instructions_short": "Step up and down slowly."
+  },
+  {
+    "exercise_id": "step_down",
+    "canonical_name": "Step Down",
+    "aliases": [
+      "step down",
+      "eccentric step down"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "step",
+    "movement_tags": [
+      "eccentric_control",
+      "single_leg_control"
+    ],
+    "contraindication_tags": [
+      "acute_knee_swelling"
+    ],
+    "instructions_short": "Lower from step with knee aligned."
+  },
+  {
+    "exercise_id": "heel_raise_double",
+    "canonical_name": "Double Leg Heel Raise",
+    "aliases": [
+      "heel raise",
+      "calf raise"
+    ],
+    "body_region": "ankle",
+    "equipment": "none",
+    "movement_tags": [
+      "plantarflexion_strength"
+    ],
+    "contraindication_tags": [
+      "acute_achilles_tear"
+    ],
+    "instructions_short": "Rise onto toes and lower slowly."
+  },
+  {
+    "exercise_id": "toe_raise",
+    "canonical_name": "Toe Raise",
+    "aliases": [
+      "toe raise",
+      "dorsiflexion raise"
+    ],
+    "body_region": "ankle",
+    "equipment": "none",
+    "movement_tags": [
+      "dorsiflexor_strength"
+    ],
+    "contraindication_tags": [
+      "none_specific"
+    ],
+    "instructions_short": "Lift forefoot while heels stay down."
+  },
+  {
+    "exercise_id": "ankle_alphabet",
+    "canonical_name": "Ankle Alphabet",
+    "aliases": [
+      "ankle alphabet"
+    ],
+    "body_region": "ankle",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "motor_control"
+    ],
+    "contraindication_tags": [
+      "post_op_restriction_if_present"
+    ],
+    "instructions_short": "Trace alphabet with foot."
+  },
+  {
+    "exercise_id": "ankle_eversion_band",
+    "canonical_name": "Ankle Eversion Band",
+    "aliases": [
+      "ankle eversion",
+      "resisted eversion"
+    ],
+    "body_region": "ankle",
+    "equipment": "band",
+    "movement_tags": [
+      "eversion_strength"
+    ],
+    "contraindication_tags": [
+      "acute_lateral_ankle_pain_severe"
+    ],
+    "instructions_short": "Move foot outward against band."
+  },
+  {
+    "exercise_id": "ankle_inversion_band",
+    "canonical_name": "Ankle Inversion Band",
+    "aliases": [
+      "ankle inversion",
+      "resisted inversion"
+    ],
+    "body_region": "ankle",
+    "equipment": "band",
+    "movement_tags": [
+      "inversion_strength"
+    ],
+    "contraindication_tags": [
+      "acute_medial_ankle_pain_severe"
+    ],
+    "instructions_short": "Move foot inward against band."
+  },
+  {
+    "exercise_id": "wall_slide",
+    "canonical_name": "Wall Slide",
+    "aliases": [
+      "wall slide shoulder",
+      "wall slide"
+    ],
+    "body_region": "shoulder",
+    "equipment": "wall",
+    "movement_tags": [
+      "scapular_upward_rotation",
+      "mobility"
+    ],
+    "contraindication_tags": [
+      "acute_shoulder_impingement_high_irritability"
+    ],
+    "instructions_short": "Slide arms up wall with ribs down."
+  },
+  {
+    "exercise_id": "scapular_retraction",
+    "canonical_name": "Scapular Retraction",
+    "aliases": [
+      "scapular retraction",
+      "shoulder blade squeeze"
+    ],
+    "body_region": "shoulder",
+    "equipment": "band",
+    "movement_tags": [
+      "postural_control",
+      "scapular_strength"
+    ],
+    "contraindication_tags": [
+      "acute_rhomboid_strain"
+    ],
+    "instructions_short": "Squeeze shoulder blades gently."
+  },
+  {
+    "exercise_id": "band_row",
+    "canonical_name": "Band Row",
+    "aliases": [
+      "row",
+      "band row",
+      "seated row band"
+    ],
+    "body_region": "thoracic_shoulder",
+    "equipment": "band",
+    "movement_tags": [
+      "horizontal_pull",
+      "scapular_retraction"
+    ],
+    "contraindication_tags": [
+      "acute_biceps_tendon_flare"
+    ],
+    "instructions_short": "Pull elbows back with neutral neck."
+  },
+  {
+    "exercise_id": "band_pulldown",
+    "canonical_name": "Band Pulldown",
+    "aliases": [
+      "band pulldown",
+      "lat pulldown band"
+    ],
+    "body_region": "shoulder",
+    "equipment": "band",
+    "movement_tags": [
+      "vertical_pull",
+      "scapular_depression"
+    ],
+    "contraindication_tags": [
+      "acute_shoulder_pain_overhead"
+    ],
+    "instructions_short": "Pull band down toward chest."
+  },
+  {
+    "exercise_id": "external_rotation_side",
+    "canonical_name": "Side-Lying External Rotation",
+    "aliases": [
+      "side lying external rotation",
+      "sidelying er"
+    ],
+    "body_region": "shoulder",
+    "equipment": "dumbbell",
+    "movement_tags": [
+      "rotator_cuff_strength",
+      "external_rotation"
+    ],
+    "contraindication_tags": [
+      "acute_rotator_cuff_tear"
+    ],
+    "instructions_short": "Rotate forearm upward with elbow tucked."
+  },
+  {
+    "exercise_id": "internal_rotation_band",
+    "canonical_name": "Band Internal Rotation",
+    "aliases": [
+      "band internal rotation",
+      "shoulder ir"
+    ],
+    "body_region": "shoulder",
+    "equipment": "band",
+    "movement_tags": [
+      "rotator_cuff_strength",
+      "internal_rotation"
+    ],
+    "contraindication_tags": [
+      "anterior_shoulder_instability"
+    ],
+    "instructions_short": "Rotate forearm inward against band."
+  },
+  {
+    "exercise_id": "scaption",
+    "canonical_name": "Scaption",
+    "aliases": [
+      "scaption",
+      "shoulder scaption raise"
+    ],
+    "body_region": "shoulder",
+    "equipment": "dumbbell",
+    "movement_tags": [
+      "deltoid_strength",
+      "scapular_plane"
+    ],
+    "contraindication_tags": [
+      "acute_subacromial_pain_high"
+    ],
+    "instructions_short": "Lift arms in scapular plane."
+  },
+  {
+    "exercise_id": "chin_tuck",
+    "canonical_name": "Chin Tuck",
+    "aliases": [
+      "chin tuck",
+      "cervical retraction"
+    ],
+    "body_region": "cervical",
+    "equipment": "none",
+    "movement_tags": [
+      "deep_neck_flexor",
+      "posture"
+    ],
+    "contraindication_tags": [
+      "cervical_radiculopathy_aggravated"
+    ],
+    "instructions_short": "Gently draw chin backward."
+  },
+  {
+    "exercise_id": "cervical_rotation_arom",
+    "canonical_name": "Cervical Rotation AROM",
+    "aliases": [
+      "neck rotation",
+      "cervical rotation"
+    ],
+    "body_region": "cervical",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "rotation"
+    ],
+    "contraindication_tags": [
+      "acute_dizziness_unassessed"
+    ],
+    "instructions_short": "Turn head slowly side to side."
+  },
+  {
+    "exercise_id": "thoracic_extension_chair",
+    "canonical_name": "Thoracic Extension Over Chair",
+    "aliases": [
+      "thoracic extension chair",
+      "chair thoracic extension"
+    ],
+    "body_region": "thoracic",
+    "equipment": "chair",
+    "movement_tags": [
+      "mobility",
+      "extension"
+    ],
+    "contraindication_tags": [
+      "osteoporosis_uncontrolled"
+    ],
+    "instructions_short": "Extend upper back over chair support."
+  },
+  {
+    "exercise_id": "cat_cow",
+    "canonical_name": "Cat Cow",
+    "aliases": [
+      "cat cow",
+      "cat-camel"
+    ],
+    "body_region": "thoracic_lumbar",
+    "equipment": "mat",
+    "movement_tags": [
+      "spinal_mobility",
+      "segmental_control"
+    ],
+    "contraindication_tags": [
+      "acute_disc_irritability_flexion"
+    ],
+    "instructions_short": "Alternate gentle spinal flexion and extension."
+  },
+  {
+    "exercise_id": "childs_pose",
+    "canonical_name": "Childs Pose",
+    "aliases": [
+      "childs pose",
+      "child pose"
+    ],
+    "body_region": "lumbar_hip",
+    "equipment": "mat",
+    "movement_tags": [
+      "flexion_mobility",
+      "relaxation"
+    ],
+    "contraindication_tags": [
+      "knee_flexion_limit"
+    ],
+    "instructions_short": "Sit back toward heels and breathe."
+  },
+  {
+    "exercise_id": "bird_dog",
+    "canonical_name": "Bird Dog",
+    "aliases": [
+      "bird dog",
+      "quadruped opposite arm leg"
+    ],
+    "body_region": "lumbar",
+    "equipment": "mat",
+    "movement_tags": [
+      "core_stability",
+      "anti_rotation"
+    ],
+    "contraindication_tags": [
+      "wrist_intolerance"
+    ],
+    "instructions_short": "Reach opposite arm and leg maintaining trunk."
+  },
+  {
+    "exercise_id": "dead_bug",
+    "canonical_name": "Dead Bug",
+    "aliases": [
+      "dead bug"
+    ],
+    "body_region": "lumbar",
+    "equipment": "mat",
+    "movement_tags": [
+      "core_control",
+      "anti_extension"
+    ],
+    "contraindication_tags": [
+      "acute_hip_flexor_pain"
+    ],
+    "instructions_short": "Lower opposite arm and leg with braced core."
+  },
+  {
+    "exercise_id": "plank_modified",
+    "canonical_name": "Modified Plank",
+    "aliases": [
+      "modified plank",
+      "plank on knees"
+    ],
+    "body_region": "core",
+    "equipment": "mat",
+    "movement_tags": [
+      "core_endurance",
+      "anti_extension"
+    ],
+    "contraindication_tags": [
+      "acute_shoulder_wrist_pain"
+    ],
+    "instructions_short": "Hold plank on knees with neutral spine."
+  },
+  {
+    "exercise_id": "side_plank_knees",
+    "canonical_name": "Side Plank Knees",
+    "aliases": [
+      "side plank knees",
+      "modified side plank"
+    ],
+    "body_region": "core_hip",
+    "equipment": "mat",
+    "movement_tags": [
+      "lateral_core",
+      "hip_stability"
+    ],
+    "contraindication_tags": [
+      "acute_shoulder_pain_lateral"
+    ],
+    "instructions_short": "Lift hips in side plank from knees."
+  },
+  {
+    "exercise_id": "pelvic_tilt",
+    "canonical_name": "Posterior Pelvic Tilt",
+    "aliases": [
+      "pelvic tilt",
+      "posterior pelvic tilt"
+    ],
+    "body_region": "lumbar",
+    "equipment": "mat",
+    "movement_tags": [
+      "lumbopelvic_control"
+    ],
+    "contraindication_tags": [
+      "none_specific"
+    ],
+    "instructions_short": "Flatten lower back gently into surface."
+  },
+  {
+    "exercise_id": "hamstring_bridge",
+    "canonical_name": "Hamstring Bridge",
+    "aliases": [
+      "hamstring bridge",
+      "heel dig bridge"
+    ],
+    "body_region": "posterior_chain",
+    "equipment": "mat",
+    "movement_tags": [
+      "hip_extension",
+      "hamstring_bias"
+    ],
+    "contraindication_tags": [
+      "proximal_hamstring_irritability"
+    ],
+    "instructions_short": "Bridge while digging heels down."
+  },
+  {
+    "exercise_id": "nerve_slider_sciatic",
+    "canonical_name": "Sciatic Nerve Slider",
+    "aliases": [
+      "sciatic nerve slider",
+      "nerve glide sciatic"
+    ],
+    "body_region": "neural",
+    "equipment": "none",
+    "movement_tags": [
+      "neurodynamic_slider"
+    ],
+    "contraindication_tags": [
+      "high_neural_irritability_tensioner_only"
+    ],
+    "instructions_short": "Alternate knee extension with ankle motion gently."
+  },
+  {
+    "exercise_id": "median_nerve_slider",
+    "canonical_name": "Median Nerve Slider",
+    "aliases": [
+      "median nerve slider",
+      "median nerve glide"
+    ],
+    "body_region": "neural_upper",
+    "equipment": "none",
+    "movement_tags": [
+      "neurodynamic_slider"
+    ],
+    "contraindication_tags": [
+      "high_neural_irritability_tensioner_only"
+    ],
+    "instructions_short": "Move wrist/elbow through gentle slider pattern."
+  },
+  {
+    "exercise_id": "hip_flexor_stretch_halfkneel",
+    "canonical_name": "Half-Kneeling Hip Flexor Stretch",
+    "aliases": [
+      "hip flexor stretch",
+      "half kneeling hip flexor"
+    ],
+    "body_region": "hip",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "hip_extension"
+    ],
+    "contraindication_tags": [
+      "knee_pain_kneeling"
+    ],
+    "instructions_short": "Shift forward keeping trunk tall."
+  },
+  {
+    "exercise_id": "piriformis_stretch",
+    "canonical_name": "Piriformis Stretch",
+    "aliases": [
+      "piriformis stretch",
+      "figure 4 stretch"
+    ],
+    "body_region": "hip",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "external_rotation"
+    ],
+    "contraindication_tags": [
+      "acute_posterior_hip_pain"
+    ],
+    "instructions_short": "Pull leg toward chest in figure-4."
+  },
+  {
+    "exercise_id": "itb_stretch",
+    "canonical_name": "IT Band Stretch",
+    "aliases": [
+      "it band stretch",
+      "tensor fascia lata stretch"
+    ],
+    "body_region": "hip_lateral",
+    "equipment": "none",
+    "movement_tags": [
+      "mobility",
+      "lateral_chain"
+    ],
+    "contraindication_tags": [
+      "balance_limit"
+    ],
+    "instructions_short": "Lean trunk away to stretch lateral hip."
+  },
+  {
+    "exercise_id": "wall_sit",
+    "canonical_name": "Wall Sit",
+    "aliases": [
+      "wall sit",
+      "wall squat hold"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "wall",
+    "movement_tags": [
+      "isometric_strength",
+      "quad_endurance"
+    ],
+    "contraindication_tags": [
+      "patellofemoral_flare_high"
+    ],
+    "instructions_short": "Hold partial squat against wall."
+  },
+  {
+    "exercise_id": "mini_squat",
+    "canonical_name": "Mini Squat",
+    "aliases": [
+      "mini squat",
+      "partial squat"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "none",
+    "movement_tags": [
+      "squat_pattern",
+      "functional_strength"
+    ],
+    "contraindication_tags": [
+      "strict_non_weightbearing"
+    ],
+    "instructions_short": "Perform shallow squat with alignment."
+  },
+  {
+    "exercise_id": "single_leg_rdl",
+    "canonical_name": "Single Leg RDL",
+    "aliases": [
+      "single leg rdl",
+      "single-leg deadlift"
+    ],
+    "body_region": "hip_knee",
+    "equipment": "none",
+    "movement_tags": [
+      "hip_hinge",
+      "balance"
+    ],
+    "contraindication_tags": [
+      "acute_vestibular_limit"
+    ],
+    "instructions_short": "Hinge at hip while balancing on one leg."
+  },
+  {
+    "exercise_id": "standing_hip_abduction",
+    "canonical_name": "Standing Hip Abduction",
+    "aliases": [
+      "standing hip abduction"
+    ],
+    "body_region": "hip",
+    "equipment": "band",
+    "movement_tags": [
+      "hip_abduction_strength"
+    ],
+    "contraindication_tags": [
+      "trendelenburg_high_irritability"
+    ],
+    "instructions_short": "Move leg out to side without trunk lean."
+  },
+  {
+    "exercise_id": "standing_hip_extension",
+    "canonical_name": "Standing Hip Extension",
+    "aliases": [
+      "standing hip extension"
+    ],
+    "body_region": "hip",
+    "equipment": "band",
+    "movement_tags": [
+      "hip_extension_strength"
+    ],
+    "contraindication_tags": [
+      "lumbar_extension_intolerance"
+    ],
+    "instructions_short": "Extend leg backward with neutral spine."
+  },
+  {
+    "exercise_id": "standing_hip_flexion",
+    "canonical_name": "Standing Hip Flexion",
+    "aliases": [
+      "standing hip flexion",
+      "march with band"
+    ],
+    "body_region": "hip",
+    "equipment": "band",
+    "movement_tags": [
+      "hip_flexion_strength"
+    ],
+    "contraindication_tags": [
+      "hip_flexor_tendinopathy_irritable"
+    ],
+    "instructions_short": "Lift knee forward with control."
+  },
+  {
+    "exercise_id": "heel_slide",
+    "canonical_name": "Heel Slide",
+    "aliases": [
+      "heel slide"
+    ],
+    "body_region": "knee_hip",
+    "equipment": "towel",
+    "movement_tags": [
+      "knee_flexion_rom"
+    ],
+    "contraindication_tags": [
+      "acute_postop_restrictions"
+    ],
+    "instructions_short": "Slide heel toward buttocks and return."
+  },
+  {
+    "exercise_id": "prone_knee_flexion",
+    "canonical_name": "Prone Knee Flexion",
+    "aliases": [
+      "prone knee flexion",
+      "hamstring curl prone"
+    ],
+    "body_region": "knee",
+    "equipment": "none",
+    "movement_tags": [
+      "knee_flexion_strength"
+    ],
+    "contraindication_tags": [
+      "patellar_dislocation_acute"
+    ],
+    "instructions_short": "Bend knee in prone with control."
+  },
+  {
+    "exercise_id": "seated_march",
+    "canonical_name": "Seated March",
+    "aliases": [
+      "seated march"
+    ],
+    "body_region": "hip_core",
+    "equipment": "chair",
+    "movement_tags": [
+      "hip_flexion",
+      "core_control"
+    ],
+    "contraindication_tags": [
+      "acute_hip_flexor_irritability"
+    ],
+    "instructions_short": "Lift alternating knees while seated upright."
+  },
+  {
+    "exercise_id": "sit_to_stand_eccentric",
+    "canonical_name": "Eccentric Sit to Stand",
+    "aliases": [
+      "eccentric sit to stand"
+    ],
+    "body_region": "hip_knee",
+    "equipment": "chair",
+    "movement_tags": [
+      "eccentric_control",
+      "functional_strength"
+    ],
+    "contraindication_tags": [
+      "strict_non_weightbearing"
+    ],
+    "instructions_short": "Stand up and lower slowly to chair."
+  }
+]

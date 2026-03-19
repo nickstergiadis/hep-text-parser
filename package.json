@@ -1,0 +1,11 @@
+{
+  "name": "hep-text-parser",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "validate:videos": "node scripts/validate-videos.js",
+    "refresh:candidates": "node scripts/refresh-video-candidates.js"
+  }
+}
