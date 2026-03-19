@@ -166,7 +166,7 @@ if (!initializeApp()) {
 
 function initializeApp() {
   cacheElements();
-  if (!programDateEl || !inputTextEl || !exerciseListEl || !editorListEl) {
+  if (!inputTextEl) {
     return false;
   }
 
@@ -239,6 +239,7 @@ function bindActionButtons() {
 }
 
 function setDefaultDate() {
+  if (!programDateEl) return;
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
@@ -247,14 +248,15 @@ function setDefaultDate() {
 }
 
 function loadSample() {
-  patientNameEl.value = "Sample Patient";
-  recipientEmailEl.value = "patient@example.com";
-  programTitleEl.value = "Home Exercise Program";
-  introTextEl.value = "Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.";
-  inputTextEl.value = `leg press 3x10 hold 5 sec\nSLS 2x15\njumping jacks 30s different intensities\ncalf stretch 2x30s each side\nbridge with band 3x12\nFrequency: daily`;
+  if (patientNameEl) patientNameEl.value = "Sample Patient";
+  if (recipientEmailEl) recipientEmailEl.value = "patient@example.com";
+  if (programTitleEl) programTitleEl.value = "Home Exercise Program";
+  if (introTextEl) introTextEl.value = "Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.";
+  if (inputTextEl) inputTextEl.value = `leg press 3x10 hold 5 sec\nSLS 2x15\njumping jacks 30s different intensities\ncalf stretch 2x30s each side\nbridge with band 3x12\nFrequency: daily`;
 }
 
 function generateProgram() {
+  if (!inputTextEl) return;
   const rawText = inputTextEl.value.trim();
 
   syncPreviewHeader();
@@ -274,10 +276,10 @@ function generateProgram() {
 }
 
 function syncPreviewHeader() {
-  previewTitleEl.textContent = programTitleEl.value.trim() || "Home Exercise Program";
-  previewPatientEl.textContent = `Patient: ${patientNameEl.value.trim() || "—"}`;
-  previewDateEl.textContent = `Date: ${formatDate(programDateEl.value)}`;
-  previewIntroEl.textContent = introTextEl.value.trim() || "Perform the following exercises as prescribed.";
+  if (previewTitleEl) previewTitleEl.textContent = programTitleEl?.value.trim() || "Home Exercise Program";
+  if (previewPatientEl) previewPatientEl.textContent = `Patient: ${patientNameEl?.value.trim() || "—"}`;
+  if (previewDateEl) previewDateEl.textContent = `Date: ${formatDate(programDateEl?.value)}`;
+  if (previewIntroEl) previewIntroEl.textContent = introTextEl?.value.trim() || "Perform the following exercises as prescribed.";
 }
 
 function splitInputLines(text) {
@@ -467,6 +469,7 @@ function isLikelyParsingArtifact(text) {
 }
 
 function renderEditors() {
+  if (!editorListEl) return;
   if (!exercises.length) {
     editorListEl.innerHTML = `<p class="empty">Generate a program to review editable exercise cards.</p>`;
     return;
@@ -555,6 +558,7 @@ function handleEditorChange(event) {
 }
 
 function renderPreview() {
+  if (!exerciseListEl) return;
   syncPreviewHeader();
 
   if (!exercises.length) {
@@ -600,6 +604,7 @@ function buildDoseString(exercise) {
 }
 
 function ensureProgramForActions() {
+  if (!inputTextEl) return false;
   const rawText = inputTextEl.value.trim();
   if (!exercises.length || rawText !== lastParsedInputText) {
     generateProgram();
