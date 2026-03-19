@@ -648,16 +648,26 @@ function buildSummaryText(forEmail) {
   const title = programTitleEl.value.trim() || "Home Exercise Program";
   const date = formatDate(programDateEl.value);
   const lines = [];
+  const lineBreakBetweenExercises = forEmail ? 2 : 1;
 
   if (forEmail) lines.push(`Hello ${patient},`, "");
   lines.push(title, `Patient: ${patient}`, `Date: ${date}`, "", "Instructions:", introTextEl.value.trim(), "", "Exercises:");
 
   exercises.forEach((exercise, index) => {
+    if (index > 0) {
+      for (let i = 0; i < lineBreakBetweenExercises; i += 1) {
+        lines.push("");
+      }
+    }
+
     lines.push(`${index + 1}. ${exercise.display_name}${buildDoseString(exercise) ? " — " + buildDoseString(exercise) : ""}`);
     exercise.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       lines.push("   - Instructional videos:");
-      exercise.video_links.forEach((url, idx) => lines.push(`      ${idx + 1}) ${url}`));
+      exercise.video_links.forEach((url, idx) => {
+        const linkValue = forEmail ? `<${url}>` : url;
+        lines.push(`      ${idx + 1}) ${linkValue}`);
+      });
     }
     if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
   });
