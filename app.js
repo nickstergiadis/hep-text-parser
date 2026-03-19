@@ -167,27 +167,45 @@ const EXERCISE_LIBRARY = [
 setDefaultDate();
 renderEditors();
 renderPreview();
+bindActionButtons();
 
-if (generateBtn) {
-  generateBtn.addEventListener("click", generateProgram);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bindActionButtons, { once: true });
 }
-if (sampleBtn) {
-  sampleBtn.addEventListener("click", () => {
-    loadSample();
-    generateProgram();
-  });
-}
-if (printBtn) {
-  printBtn.addEventListener("click", () => {
-    if (!ensureProgramForActions()) return;
-    window.print();
-  });
-}
-if (emailBtn) {
-  emailBtn.addEventListener("click", openEmailDraft);
-}
-if (copySummaryBtn) {
-  copySummaryBtn.addEventListener("click", copySummary);
+
+function bindActionButtons() {
+  const liveGenerateBtn = document.getElementById("generateBtn") || generateBtn;
+  const liveSampleBtn = document.getElementById("sampleBtn") || sampleBtn;
+  const livePrintBtn = document.getElementById("printBtn") || printBtn;
+  const liveEmailBtn = document.getElementById("emailBtn") || emailBtn;
+  const liveCopySummaryBtn = document.getElementById("copySummaryBtn") || copySummaryBtn;
+
+  if (liveGenerateBtn && !liveGenerateBtn.dataset.boundGenerate) {
+    liveGenerateBtn.addEventListener("click", generateProgram);
+    liveGenerateBtn.dataset.boundGenerate = "true";
+  }
+  if (liveSampleBtn && !liveSampleBtn.dataset.boundSample) {
+    liveSampleBtn.addEventListener("click", () => {
+      loadSample();
+      generateProgram();
+    });
+    liveSampleBtn.dataset.boundSample = "true";
+  }
+  if (livePrintBtn && !livePrintBtn.dataset.boundPrint) {
+    livePrintBtn.addEventListener("click", () => {
+      if (!ensureProgramForActions()) return;
+      window.print();
+    });
+    livePrintBtn.dataset.boundPrint = "true";
+  }
+  if (liveEmailBtn && !liveEmailBtn.dataset.boundEmail) {
+    liveEmailBtn.addEventListener("click", openEmailDraft);
+    liveEmailBtn.dataset.boundEmail = "true";
+  }
+  if (liveCopySummaryBtn && !liveCopySummaryBtn.dataset.boundCopySummary) {
+    liveCopySummaryBtn.addEventListener("click", copySummary);
+    liveCopySummaryBtn.dataset.boundCopySummary = "true";
+  }
 }
 
 function setDefaultDate() {
