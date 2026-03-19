@@ -53,7 +53,7 @@ body {
 }
 
 .editor-shell #editorList {
-  max-height: 72vh;
+  max-height: 86vh;
   overflow: auto;
   padding-right: 4px;
 }
