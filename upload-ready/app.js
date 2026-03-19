@@ -1,26 +1,22 @@
-const patientNameEl = document.getElementById("patientName");
-const recipientEmailEl = document.getElementById("recipientEmail");
-const programTitleEl = document.getElementById("programTitle");
-const programDateEl = document.getElementById("programDate");
-const introTextEl = document.getElementById("introText");
-const inputTextEl = document.getElementById("inputText");
+let patientNameEl;
+let recipientEmailEl;
+let programTitleEl;
+let programDateEl;
+let introTextEl;
+let inputTextEl;
 
-const sampleBtn = document.getElementById("sampleBtn")
-  || document.getElementById("loadSampleBtn")
-  || Array.from(document.querySelectorAll("button")).find(btn => /load sample/i.test(btn.textContent || ""));
-const generateBtn = document.getElementById("generateBtn")
-  || document.getElementById("generateExercisesBtn")
-  || Array.from(document.querySelectorAll("button")).find(btn => /generate\s+(program|exercises?)/i.test(btn.textContent || ""));
-const printBtn = document.getElementById("printBtn");
-const emailBtn = document.getElementById("emailBtn");
-const copySummaryBtn = document.getElementById("copySummaryBtn");
+let sampleBtn;
+let generateBtn;
+let printBtn;
+let emailBtn;
+let copySummaryBtn;
 
-const previewTitleEl = document.getElementById("previewTitle");
-const previewPatientEl = document.getElementById("previewPatient");
-const previewDateEl = document.getElementById("previewDate");
-const previewIntroEl = document.getElementById("previewIntro");
-const exerciseListEl = document.getElementById("exerciseList");
-const editorListEl = document.getElementById("editorList");
+let previewTitleEl;
+let previewPatientEl;
+let previewDateEl;
+let previewIntroEl;
+let exerciseListEl;
+let editorListEl;
 
 let exercises = [];
 let lastParsedInputText = "";
@@ -164,13 +160,47 @@ const EXERCISE_LIBRARY = [
   }
 ];
 
-setDefaultDate();
-renderEditors();
-renderPreview();
-bindActionButtons();
+if (!initializeApp()) {
+  document.addEventListener("DOMContentLoaded", initializeApp, { once: true });
+}
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bindActionButtons, { once: true });
+function initializeApp() {
+  cacheElements();
+  if (!programDateEl || !inputTextEl || !exerciseListEl || !editorListEl) {
+    return false;
+  }
+
+  setDefaultDate();
+  renderEditors();
+  renderPreview();
+  bindActionButtons();
+  return true;
+}
+
+function cacheElements() {
+  patientNameEl = document.getElementById("patientName");
+  recipientEmailEl = document.getElementById("recipientEmail");
+  programTitleEl = document.getElementById("programTitle");
+  programDateEl = document.getElementById("programDate");
+  introTextEl = document.getElementById("introText");
+  inputTextEl = document.getElementById("inputText");
+
+  sampleBtn = document.getElementById("sampleBtn")
+    || document.getElementById("loadSampleBtn")
+    || Array.from(document.querySelectorAll("button")).find(btn => /load sample/i.test(btn.textContent || ""));
+  generateBtn = document.getElementById("generateBtn")
+    || document.getElementById("generateExercisesBtn")
+    || Array.from(document.querySelectorAll("button")).find(btn => /generate\s+(program|exercises?)/i.test(btn.textContent || ""));
+  printBtn = document.getElementById("printBtn");
+  emailBtn = document.getElementById("emailBtn");
+  copySummaryBtn = document.getElementById("copySummaryBtn");
+
+  previewTitleEl = document.getElementById("previewTitle");
+  previewPatientEl = document.getElementById("previewPatient");
+  previewDateEl = document.getElementById("previewDate");
+  previewIntroEl = document.getElementById("previewIntro");
+  exerciseListEl = document.getElementById("exerciseList");
+  editorListEl = document.getElementById("editorList");
 }
 
 function bindActionButtons() {
