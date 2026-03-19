@@ -663,7 +663,7 @@ function buildSummaryText(forEmail) {
     exercise.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       lines.push("   - Instructional videos:");
-      exercise.video_links.forEach(url => lines.push(`      <${normalizeVideoUrl(url)}>`));
+      exercise.video_links.forEach(url => lines.push(`   - ${normalizeVideoUrl(url)}`));
     }
     if (exercise.notes) lines.push(`   - Notes: ${exercise.notes}`);
   });
