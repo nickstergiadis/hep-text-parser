@@ -77,16 +77,6 @@ h1,h2,h3,h4,p { margin-top: 0; }
   color: var(--muted);
 }
 
-.badge {
-  background: var(--accent);
-  color: #1d4ed8;
-  padding: 8px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .grid {
   display: grid;
   gap: 12px;
