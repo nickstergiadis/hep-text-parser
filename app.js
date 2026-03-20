@@ -143,8 +143,28 @@ function buildExerciseObject(line, frequency, index) {
   const approvedVideo = canonical ? resolveWhitelistedVideo(canonical.exercise_id, approvedVideoWhitelist) : null;
   const fallbackVideo = buildFallbackVideo(canonical?.exercise_id || null);
 
-  let notes = cleanupNotes(line.replace(/(\d+\s*x\s*\d+|hold\s*\d+\s*(?:sec|min|seconds|minutes))/ig, ' '));
-  if (!notes || notes.length < 3) notes = canonical?.instructions_short || '';
+  let notes = line;
+  if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
+  else if (setsRepsMatch) notes = removeText(notes, setsRepsMatch[0]);
+  if (holdMatch) notes = removeText(notes, holdMatch[0]);
+  if (sideMatch) notes = removeText(notes, sideMatch[0]);
+  if (freqInlineMatch) notes = removeText(notes, freqInlineMatch[0]);
+
+  if (canonical?.aliases?.length) {
+    canonical.aliases.forEach(alias => {
+      const aliasPattern = new RegExp(`\\b${escapeRegExp(alias)}\\b`, 'ig');
+      notes = notes.replace(aliasPattern, ' ');
+    });
+  }
+
+  notes = cleanupNotes(notes);
+
+  const normalizedNotes = normalizeNoteComparison(notes);
+  const normalizedDisplayName = normalizeNoteComparison(displayName);
+  const looksLikeNameOnly = normalizedNotes && normalizedDisplayName && normalizedNotes === normalizedDisplayName;
+  const looksLikeAliasOnly = canonical?.aliases?.some(alias => normalizeNoteComparison(alias) === normalizedNotes);
+
+  if (!notes || looksLikeNameOnly || looksLikeAliasOnly) notes = '';
 
   return {
     id: `ex-${index}-${Date.now()}`,
@@ -293,6 +313,18 @@ function guessExerciseName(line) {
 
 function cleanupNotes(text) {
   return String(text || '').replace(/\s+/g, ' ').replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, '').trim();
+}
+
+function removeText(base, fragment) {
+  return String(base || '').replace(new RegExp(escapeRegExp(fragment), 'ig'), ' ');
+}
+
+function normalizeNoteComparison(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function formatDate(value) {
