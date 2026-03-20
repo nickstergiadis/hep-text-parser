@@ -1,5 +1,12 @@
 import { VIDEO_MATCHING_CONFIG } from './src/video/config.js';
-import { buildFallbackVideo, matchExerciseToCanonical, resolveWhitelistedVideo } from './src/video/matcher.js';
+import {
+  buildFallbackVideo,
+  buildYoutubeSearchQuery,
+  buildYoutubeSearchUrl,
+  matchExerciseToCanonical,
+  normalizeExerciseName,
+  resolveWhitelistedVideo
+} from './src/video/matcher.js';
 import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
 
 let patientNameEl;
@@ -163,9 +170,17 @@ function buildExerciseObject(line, frequency, index) {
 
   const canonicalMatch = matchExerciseToCanonical(line, canonicalExerciseLibrary);
   const canonical = canonicalMatch.canonical;
-  const displayName = canonical?.canonical_name || titleCase(guessExerciseName(line));
+  const extractedName = titleCase(guessExerciseName(line));
+  const displayName = canonical?.canonical_name || extractedName;
+  const canonicalName = normalizeExerciseName(canonical?.canonical_name || extractedName);
   const approvedVideo = canonical ? resolveWhitelistedVideo(canonical.exercise_id, approvedVideoWhitelist) : null;
   const fallbackVideo = buildFallbackVideo(canonical?.exercise_id || null);
+  const manualVideoUrl = approvedVideo?.url || '';
+  const videoMode = manualVideoUrl ? 'direct' : 'youtube_search';
+  const videoSearchQuery = videoMode === 'youtube_search' ? buildYoutubeSearchQuery(canonicalName) : '';
+  const videoUrl = videoMode === 'direct'
+    ? manualVideoUrl
+    : buildYoutubeSearchUrl(canonicalName);
 
   let notes = line;
   if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
@@ -193,7 +208,9 @@ function buildExerciseObject(line, frequency, index) {
   return {
     id: `ex-${index}-${Date.now()}`,
     raw_input: line,
+    name: extractedName,
     display_name: displayName,
+    canonicalName,
     canonical_exercise_id: canonical?.exercise_id || null,
     canonical_match_score: canonicalMatch.matchScore,
     sets: setsDurationMatch ? setsDurationMatch[1] : (setsRepsMatch ? setsRepsMatch[1] : ''),
@@ -204,7 +221,10 @@ function buildExerciseObject(line, frequency, index) {
     frequency: freqInlineMatch ? freqInlineMatch[0] : frequency,
     instructions: canonical?.instructions_short ? [canonical.instructions_short] : genericInstructions(displayName),
     notes,
-    video_links: approvedVideo ? [approvedVideo.url] : [],
+    videoMode,
+    videoSearchQuery,
+    videoUrl,
+    video_links: videoUrl ? [videoUrl] : [],
     video: approvedVideo || fallbackVideo
   };
 }
@@ -254,8 +274,9 @@ function renderPreview() {
   exerciseListEl.innerHTML = exercises.map((exercise, index) => {
     const dose = buildDoseString(exercise);
     const instructions = `<ol class="instructions-list">${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
-    const videoSection = (exercise.video_links || []).length
-      ? `<div class="video-links"><strong>Instructional videos:</strong><ul>${exercise.video_links.map(url => `<li><a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join('')}</ul></div>`
+    const safeVideoUrl = String(exercise.videoUrl || '').trim();
+    const videoSection = safeVideoUrl
+      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">Find demo video</a></li></ul><p class="small-label">Search results may vary. Confirm the title matches your prescribed exercise.</p></div>`
       : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
     const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : '';
 

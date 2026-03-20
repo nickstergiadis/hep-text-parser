@@ -1,5 +1,13 @@
 import { CONFIDENCE_TIERS, VIDEO_MATCHING_CONFIG } from './config.js';
 
+const EXERCISE_NAME_ALIASES = new Map([
+  ['clam shell', 'Sidelying Clamshell'],
+  ['clams', 'Sidelying Clamshell'],
+  ['tke', 'Terminal Knee Extension with Band'],
+  ['slr', 'Straight Leg Raise'],
+  ['bridge', 'Glute Bridge']
+]);
+
 export function normalizeExerciseText(input) {
   return String(input || '')
     .toLowerCase()
@@ -20,6 +28,25 @@ function tokenOverlapScore(a, b) {
     if (bTokens.has(token)) overlap += 1;
   });
   return Math.round((overlap / Math.max(aTokens.size, bTokens.size)) * 100);
+}
+
+export function normalizeExerciseName(name) {
+  const compact = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!compact) return '';
+  const aliasValue = EXERCISE_NAME_ALIASES.get(compact.toLowerCase());
+  return aliasValue || compact;
+}
+
+export function buildYoutubeSearchQuery(canonicalName) {
+  const normalizedName = normalizeExerciseName(canonicalName);
+  if (!normalizedName) return '';
+  return `${normalizedName} exercise physiotherapy instructions`;
+}
+
+export function buildYoutubeSearchUrl(canonicalName) {
+  const query = buildYoutubeSearchQuery(canonicalName);
+  if (!query) return '';
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }
 
 export function matchExerciseToCanonical(rawInput, exercisesMaster) {
