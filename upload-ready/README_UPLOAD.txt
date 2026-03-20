@@ -1,12 +1,7 @@
-Upload these 3 files to your GitHub repo root:
-- index.html
-- app.js
-- style.css
+`upload-ready/` is a generated mirror of the root production app for static publishing backups.
 
-How:
-1) Open https://github.com/nickstergiadis/hep-text-parser
-2) Click Add file -> Upload files
-3) Drag these three files from this folder
-4) Commit changes
+- Source of truth: repository root (`index.html`, `app.js`, `style.css`, `data/`, `src/`).
+- Do not hand-edit runtime files in `upload-ready/`.
+- Regenerate with: `npm run sync:upload-ready`.
 
-If prompted to replace existing files, choose replace.
+For GitHub Pages deployment, use the workflow at `.github/workflows/deploy-pages.yml`.
