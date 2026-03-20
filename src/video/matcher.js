@@ -3,18 +3,46 @@ import { CONFIDENCE_TIERS, VIDEO_MATCHING_CONFIG } from './config.js';
 const EXERCISE_NAME_ALIASES = new Map([
   ['clam shell', 'Sidelying Clamshell'],
   ['clams', 'Sidelying Clamshell'],
+  ['clamshell', 'Sidelying Clamshell'],
   ['tke', 'Terminal Knee Extension with Band'],
+  ['terminal knee extension', 'Terminal Knee Extension with Band'],
   ['slr', 'Straight Leg Raise'],
   ['bridge', 'Glute Bridge'],
   ['chin tuck', 'Chin Tuck']
 ]);
 
-export function normalizeExerciseText(input) {
+const VAGUE_EXERCISE_PATTERNS = [
+  /^exercise$/i,
+  /^stretches?$/i,
+  /^stretching$/i,
+  /^mobility$/i,
+  /^strength(?:ening)?$/i,
+  /^home program$/i,
+  /^hep$/i
+];
+
+export function cleanExerciseLabel(input) {
   return String(input || '')
+    .replace(/[–—]/g, '-')
+    .replace(/^\s*(?:[-*•]+|\d+[.)]\s*)+/, '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[:|-]+\s*(?:\d+\s*x\s*\d+(?:\s*\/\s*(?:side|leg|arm))?|\d+\s*(?:reps?|sec|secs|seconds|min|mins|minutes))\b.*$/i, ' ')
+    .replace(/\b\d+\s*x\s*\d+(?:\s*\/\s*(?:side|leg|arm))?(?:\s*(?:reps?|sec|secs|seconds|min|mins|minutes))?\b.*$/i, ' ')
+    .replace(/\bx\s*\d+(?:\s*(?:reps?|sec|secs|seconds|min|mins|minutes))?\b.*$/i, ' ')
+    .replace(/\b\d+\s*(?:reps?|sec|secs|seconds|min|mins|minutes)\b.*$/i, ' ')
+    .replace(/\bhold\s+\d+\s*(?:sec|secs|seconds|min|mins|minutes)\b.*$/i, ' ')
+    .replace(/\b(?:each|per)\s+(?:side|leg|arm)\b.*$/i, ' ')
+    .replace(/\b(?:left|right)\b.*$/i, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[,;:\-\s]+|[,;:\-\s]+$/g, '')
+    .trim();
+}
+
+export function normalizeExerciseText(input) {
+  return cleanExerciseLabel(input)
     .toLowerCase()
     .replace(/[_-]/g, ' ')
     .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\b\d+x\d+\b/g, ' ')
     .replace(/\b(hold|sec|secs|seconds|min|mins|minutes|daily|weekly|x\/week)\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -32,10 +60,7 @@ function tokenOverlapScore(a, b) {
 }
 
 export function normalizeExerciseName(name) {
-  const compact = String(name || '')
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const compact = cleanExerciseLabel(name);
   if (!compact) return '';
 
   const stripped = compact
@@ -51,6 +76,13 @@ export function normalizeExerciseName(name) {
   if (!stripped) return '';
   const aliasValue = EXERCISE_NAME_ALIASES.get(stripped.toLowerCase());
   return aliasValue || stripped;
+}
+
+export function isUsefulExerciseName(name) {
+  const value = String(name || '').trim();
+  if (!value) return false;
+  if (!/[a-z]/i.test(value)) return false;
+  return !VAGUE_EXERCISE_PATTERNS.some(pattern => pattern.test(value));
 }
 
 export function isValidVideoUrl(url) {

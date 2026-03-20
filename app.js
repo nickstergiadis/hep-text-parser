@@ -3,7 +3,8 @@ import {
   buildFallbackVideo,
   buildYoutubeSearchQuery,
   buildYoutubeSearchUrl,
-  isValidVideoUrl,
+  cleanExerciseLabel,
+  isUsefulExerciseName,
   matchExerciseToCanonical,
   normalizeExerciseName,
   resolveWhitelistedVideo
@@ -158,7 +159,10 @@ function parseRoughInput(text) {
   const frequencyLine = lines.find(line => /^frequency:/i.test(line));
   const frequency = frequencyLine ? frequencyLine.replace(/^frequency:/i, '').trim() : '';
 
-  return lines.filter(line => !/^frequency:/i.test(line)).map((line, index) => buildExerciseObject(line, frequency, index));
+  return lines
+    .filter(line => !/^frequency:/i.test(line))
+    .filter(line => /[a-z0-9]/i.test(line))
+    .map((line, index) => buildExerciseObject(line, frequency, index));
 }
 
 function buildExerciseObject(line, frequency, index) {
@@ -173,17 +177,15 @@ function buildExerciseObject(line, frequency, index) {
   const canonical = canonicalMatch.canonical;
   const extractedName = titleCase(guessExerciseName(line));
   const displayName = canonical?.canonical_name || extractedName || 'Exercise';
-  const canonicalName = normalizeExerciseName(canonical?.canonical_name || extractedName);
+  const normalizedCanonicalName = normalizeExerciseName(canonical?.canonical_name || extractedName);
+  const canonicalName = isUsefulExerciseName(normalizedCanonicalName) ? normalizedCanonicalName : '';
   const approvedVideo = canonical ? resolveWhitelistedVideo(canonical.exercise_id, approvedVideoWhitelist) : null;
   const fallbackVideo = buildFallbackVideo(canonical?.exercise_id || null);
   const videoOverrideUrl = approvedVideo?.url || '';
-  const hasValidOverrideUrl = isValidVideoUrl(videoOverrideUrl);
   const hasCanonicalName = Boolean(canonicalName);
-  const videoMode = hasValidOverrideUrl ? 'direct' : (hasCanonicalName ? 'youtube_search' : 'none');
+  const videoMode = hasCanonicalName ? 'youtube_search' : 'none';
   const videoSearchQuery = videoMode === 'youtube_search' ? buildYoutubeSearchQuery(canonicalName) : '';
-  const videoUrl = videoMode === 'direct'
-    ? videoOverrideUrl
-    : (videoMode === 'youtube_search' ? buildYoutubeSearchUrl(canonicalName) : '');
+  const videoUrl = videoMode === 'youtube_search' ? buildYoutubeSearchUrl(canonicalName) : '';
 
   let notes = line;
   if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
@@ -354,11 +356,8 @@ function normalizeTimeUnit(unit) {
 }
 
 function guessExerciseName(line) {
-  const raw = String(line || '')
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/(\d+\s*x\s*\d+|hold\s*\d+\s*(?:sec|min|seconds|minutes))/ig, ' ')
-    .replace(/\b(?:sec|secs|seconds|min|mins|minutes|daily|weekly|x\/week|times per week)\b/ig, ' ')
-    .replace(/\b(?:left|right|each side|per side|each leg|each arm)\b/ig, ' ')
+  const raw = cleanExerciseLabel(line)
+    .replace(/\b(?:daily|weekly|x\/week|times per week)\b/ig, ' ')
     .replace(/\b(?:pain|sore|soreness|discomfort|comment|note|notes?)\b.*$/ig, ' ')
     .replace(/\s+/g, ' ')
     .trim();
