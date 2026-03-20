@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   buildFallbackVideo,
+  cleanExerciseLabel,
   buildYoutubeSearchQuery,
   buildYoutubeSearchUrl,
+  isUsefulExerciseName,
   isValidVideoUrl,
   matchExerciseToCanonical,
   normalizeExerciseName,
@@ -86,6 +88,38 @@ test('youtube search URL builder uses canonical query pattern', () => {
 
 test('exercise name normalization removes dosage and side/pain notes before query generation', () => {
   assert.equal(normalizeExerciseName('bridge 3x12 each side pain 4/10'), 'Glute Bridge');
+});
+
+test('exercise label cleaner strips bullets, numbering, punctuation and dosage suffixes', () => {
+  assert.equal(cleanExerciseLabel('1. Sidelying hip abduction – 3x12'), 'Sidelying hip abduction');
+  assert.equal(cleanExerciseLabel('• Pallof press 3x10'), 'Pallof press');
+  assert.equal(cleanExerciseLabel('Wall Sit: 3 x 30 sec'), 'Wall Sit');
+  assert.equal(cleanExerciseLabel('Heel Raise (counter support) 3x15'), 'Heel Raise');
+});
+
+test('normalization handles mixed casing and common shorthand aliases', () => {
+  assert.equal(normalizeExerciseName('  tKe 3x15  '), 'Terminal Knee Extension with Band');
+  assert.equal(normalizeExerciseName('SLR 2x10'), 'Straight Leg Raise');
+  assert.equal(normalizeExerciseName('Clam shell 3x12'), 'Sidelying Clamshell');
+});
+
+test('vague exercise names are rejected for video search query generation', () => {
+  assert.equal(isUsefulExerciseName('Exercise'), false);
+  assert.equal(isUsefulExerciseName('Stretching'), false);
+  assert.equal(isUsefulExerciseName('Bird Dog'), true);
+});
+
+test('canonical matching still succeeds for representative pasted lines', () => {
+  const cases = [
+    ['Bridge – 3x10', 'bridge'],
+    ['TKE 3x15', 'terminal_knee_extension_band'],
+    ['Sciatic nerve glide x10', 'nerve_slider_sciatic'],
+    ['Bird Dog   2x8 each side', 'bird_dog']
+  ];
+  cases.forEach(([input, expectedId]) => {
+    const res = matchExerciseToCanonical(input, exercises);
+    assert.equal(res.canonical.exercise_id, expectedId);
+  });
 });
 
 test('video override URL validator accepts only http/https links', () => {
