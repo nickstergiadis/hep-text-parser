@@ -1,5 +1,6 @@
 import { VIDEO_MATCHING_CONFIG } from './src/video/config.js';
 import { buildFallbackVideo, matchExerciseToCanonical, resolveWhitelistedVideo } from './src/video/matcher.js';
+import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
 
 let patientNameEl;
 let recipientEmailEl;
@@ -25,6 +26,7 @@ let exercises = [];
 let lastParsedInputText = '';
 let canonicalExerciseLibrary = [];
 let approvedVideoWhitelist = [];
+let dataLoadWarnings = [];
 const TIME_UNIT_PATTERN = '(seconds?|secs?|minutes?|mins?|sec|min|s)';
 
 (async function boot() {
@@ -43,13 +45,35 @@ async function initializeApp() {
 }
 
 async function loadVideoMatchingData() {
+  dataLoadWarnings = [];
   const [exerciseResp, whitelistResp] = await Promise.all([
     fetch('./data/exercises_master.json').catch(() => null),
     fetch('./data/video_whitelist.json').catch(() => null)
   ]);
 
-  canonicalExerciseLibrary = exerciseResp?.ok ? await exerciseResp.json() : [];
-  approvedVideoWhitelist = whitelistResp?.ok ? await whitelistResp.json() : [];
+  if (!exerciseResp?.ok) {
+    dataLoadWarnings.push('exercise library unavailable');
+  } else {
+    canonicalExerciseLibrary = await exerciseResp.json().catch(() => []);
+    if (!Array.isArray(canonicalExerciseLibrary) || !canonicalExerciseLibrary.length) {
+      canonicalExerciseLibrary = [];
+      dataLoadWarnings.push('exercise library invalid');
+    }
+  }
+
+  if (!whitelistResp?.ok) {
+    dataLoadWarnings.push('video whitelist unavailable');
+  } else {
+    approvedVideoWhitelist = await whitelistResp.json().catch(() => []);
+    if (!Array.isArray(approvedVideoWhitelist)) {
+      approvedVideoWhitelist = [];
+      dataLoadWarnings.push('video whitelist invalid');
+    }
+  }
+
+  if (dataLoadWarnings.length) {
+    console.warn(`HEP Builder Pro data load warning: ${dataLoadWarnings.join(', ')}`);
+  }
 }
 
 function cacheElements() {
@@ -96,7 +120,7 @@ function loadSample() {
   if (recipientEmailEl) recipientEmailEl.value = 'patient@example.com';
   if (programTitleEl) programTitleEl.value = 'Home Exercise Program';
   if (introTextEl) introTextEl.value = 'Perform the following exercises as prescribed. Use controlled movement and stop if symptoms significantly worsen.';
-  if (inputTextEl) inputTextEl.value = `leg press 3x10 hold 5 sec\nSLS 2x15\nclamshell 2x12\ncalf stretch 2x30s each side\nbridge 3x12\nFrequency: daily`;
+  if (inputTextEl) inputTextEl.value = `bridge with band 3x12\nSLS 2x15\nclamshell 2x12\ncalf stretch 2x30s each side\nwall sit 3x30 sec\nFrequency: daily`;
 }
 
 function splitInputLines(text) {
@@ -221,6 +245,9 @@ function renderPreview() {
 
   if (!exercises.length) {
     exerciseListEl.innerHTML = '<p class="empty">Generate a program to see the patient-ready preview.</p>';
+    if (dataLoadWarnings.length) {
+      exerciseListEl.innerHTML += `<p class="empty">Data load notice: ${escapeHtml(dataLoadWarnings.join(', '))}. Canonical matching or approved videos may be limited.</p>`;
+    }
     return;
   }
 
@@ -243,17 +270,6 @@ function syncPreviewHeader() {
   if (previewIntroEl) previewIntroEl.textContent = introTextEl?.value.trim() || 'Perform the following exercises as prescribed.';
 }
 
-function buildDoseString(exercise) {
-  const parts = [];
-  if (exercise.sets && exercise.reps) parts.push(`${exercise.sets} sets x ${exercise.reps} reps`);
-  else if (exercise.sets && exercise.duration) parts.push(`${exercise.sets} sets x ${exercise.duration}`);
-  else if (exercise.duration) parts.push(exercise.duration);
-  if (exercise.hold) parts.push(`${exercise.hold} hold`);
-  if (exercise.side) parts.push(exercise.side);
-  if (exercise.frequency) parts.push(exercise.frequency);
-  return parts.join(' • ');
-}
-
 function ensureProgramForActions() {
   if (!inputTextEl) return false;
   const rawText = inputTextEl.value.trim();
@@ -267,29 +283,34 @@ function ensureProgramForActions() {
 
 function openEmailDraft() {
   if (!ensureProgramForActions()) return;
-  const recipient = recipientEmailEl.value.trim();
+  const recipient = recipientEmailEl?.value.trim();
   if (!recipient) return alert('Enter a recipient email first.');
-  const subject = `${programTitleEl.value.trim() || 'Home Exercise Program'} - ${formatDate(programDateEl.value)}`;
-  const body = buildSummaryText(true);
-  window.location.href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const subject = `${programTitleEl?.value.trim() || 'Home Exercise Program'} - ${formatDate(programDateEl?.value)}`;
+  const body = buildSummaryTextForProgram(true);
+  window.location.href = buildEmailDraftHref({ recipient, subject, body });
 }
 
 async function copySummary() {
   if (!ensureProgramForActions()) return;
-  await navigator.clipboard.writeText(buildSummaryText(false));
-  alert('Program summary copied.');
+  const summary = buildSummaryTextForProgram(false);
+  try {
+    if (!navigator?.clipboard?.writeText) throw new Error('clipboard unavailable');
+    await navigator.clipboard.writeText(summary);
+    alert('Program summary copied.');
+  } catch {
+    window.prompt('Clipboard unavailable. Copy your summary below:', summary);
+  }
 }
 
-function buildSummaryText(forEmail) {
-  const newline = forEmail ? '\r\n' : '\n';
-  const lines = [`${programTitleEl.value.trim() || 'Home Exercise Program'}`, `Patient: ${patientNameEl.value.trim() || 'Patient'}`, `Date: ${formatDate(programDateEl.value)}`, '', 'Exercises:'];
-  exercises.forEach((exercise, index) => {
-    lines.push(`${index + 1}. ${exercise.display_name}${buildDoseString(exercise) ? ` — ${buildDoseString(exercise)}` : ''}`);
-    exercise.instructions.forEach(step => lines.push(`   - ${step}`));
-    if ((exercise.video_links || []).length) exercise.video_links.forEach(url => lines.push(`   - ${url}`));
-    else lines.push(`   - ${exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message}`);
+function buildSummaryTextForProgram(forEmail) {
+  return buildSummaryText({
+    exercises,
+    title: programTitleEl?.value.trim() || 'Home Exercise Program',
+    patientName: patientNameEl?.value.trim() || 'Patient',
+    date: formatDate(programDateEl?.value),
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail
   });
-  return lines.join(newline);
 }
 
 function genericInstructions(name) {

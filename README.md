@@ -1,75 +1,44 @@
 # HEP Builder Pro
 
-## Architecture overview
+HEP Builder Pro is a deterministic, static web app for converting clinician shorthand into a patient-ready exercise program.
 
-This repository now includes a conservative, deterministic video-matching subsystem that is separate from runtime parsing UI behavior.
+## Production architecture (single source of truth)
 
-- **Canonical exercise source of truth**: `data/exercises_master.json`
-- **Approved video source of truth**: `data/video_whitelist.json`
-- **Candidate and rejection logs**: `data/video_candidates.json`, `data/video_rejections.json`
-- **Validator outputs**: `data/video_validation_report.json`, `reports/validation_summary.md`
-- **Core logic**: `src/video/*.js`
-- **Automation scripts**: `scripts/*.js`
-- **Scheduled automation**: `.github/workflows/*.yml`
+- **Production app:** repository root (`index.html`, `app.js`, `style.css`).
+- **Canonical exercise model:** `data/exercises_master.json`.
+- **Approved runtime video model:** `data/video_whitelist.json` only.
+- **Matching logic:** `src/video/`.
+- **Program output helpers:** `src/app/output.js`.
+- **`upload-ready/`:** generated mirror of production runtime files, refreshed via `npm run sync:upload-ready`.
 
-## How video matching works
+## Video policy
 
-1. Parsed text is normalized and mapped to canonical exercise names/aliases.
-2. Runtime app only checks the local whitelist JSON.
-3. Only `APPROVED_HIGH_CONFIDENCE` videos are used by default.
-4. If no approved video exists, the app returns a stable fallback object and UI shows: **"Video currently unavailable."**
-5. No live YouTube searching is used in user-facing flows.
+- Runtime behavior is whitelist-only (no live YouTube searching in user flows).
+- Only approved whitelist rows are attached.
+- Missing approved videos use deterministic fallback: **"Video currently unavailable."**
+- Candidate refresh/validation scripts are batch-only workflows.
 
-## Refresh candidates
-
-Candidate refresh is intentionally offline/batch only.
+## Local commands
 
 ```bash
-YOUTUBE_API_KEY=... npm run refresh:candidates
+npm test
+npm run verify:production
+npm run check
+npm run sync:upload-ready
 ```
 
-This script will:
-- generate strict search queries from canonical names/aliases
-- collect metadata from YouTube Data API
-- score candidates with ambiguity penalties
-- auto-approve only high-confidence matches
-- write outputs to candidate/rejection/whitelist JSON files
+## GitHub Pages deployment (first-class path)
 
-## Validation
+Single deploy path: **GitHub Actions workflow** at `.github/workflows/deploy-pages.yml`.
 
-```bash
-YOUTUBE_API_KEY=... npm run validate:videos
-```
+- Triggered on push to `main` or manually.
+- Runs `npm run check` before deploying.
+- Publishes repo root as static Pages artifact.
 
-Validation re-checks all approved videos for:
-- metadata resolution
-- embeddability
-- public availability
+## Production readiness checklist
 
-Broken videos are marked inactive; if backup approved entries exist for the same exercise, one is promoted.
-
-## Config flags
-
-Defined in `src/video/config.js`:
-- `useLowerConfidenceVideos` (default `false`)
-- `highConfidenceThreshold`
-- `lowerConfidenceThreshold`
-- min/max instructional duration bounds
-
-## File structure
-
-- `app.js` – frontend parser + canonical/whitelist integration
-- `src/video/config.js` – deterministic thresholds and tiers
-- `src/video/matcher.js` – normalization, alias matching, fallback resolution
-- `src/video/scoring.js` – strict candidate scoring and ambiguity penalties
-- `src/video/pipeline.js` – query generation + YouTube API candidate collection + ranking
-- `scripts/refresh-video-candidates.js` – batch refresh
-- `scripts/validate-videos.js` – batch validator
-- `tests/video-matching.test.js` – normalization/scoring/fallback/E2E mapping tests
-
-## Troubleshooting
-
-- **No videos are attaching in app**: verify `data/video_whitelist.json` has active `APPROVED_HIGH_CONFIDENCE` entries for canonical IDs.
-- **Refresh script fails**: check `YOUTUBE_API_KEY` environment variable.
-- **Validation script fails**: check API key and YouTube API quota/permissions.
-- **Unexpected matches**: tighten thresholds and penalties in `src/video/config.js` and `src/video/scoring.js`.
+- **Source of truth:** root app + canonical JSON data.
+- **Deployment target:** GitHub Pages workflow (`deploy-pages.yml`).
+- **Verification:** `npm run check` (tests + production file/data validation).
+- **Video strategy:** deterministic whitelist + stable fallback.
+- **Known limitation:** whitelist coverage is intentionally conservative; unsupported exercises will render fallback video text.
