@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { matchExerciseToCanonical, buildFallbackVideo, resolveWhitelistedVideo } from '../src/video/matcher.js';
+import {
+  buildFallbackVideo,
+  buildYoutubeSearchQuery,
+  buildYoutubeSearchUrl,
+  matchExerciseToCanonical,
+  normalizeExerciseName,
+  resolveWhitelistedVideo
+} from '../src/video/matcher.js';
 import { scoreCandidate } from '../src/video/scoring.js';
 import { CONFIDENCE_TIERS } from '../src/video/config.js';
 
@@ -58,4 +65,19 @@ test('end-to-end parsed text maps to approved video for bridge', () => {
   const approved = resolveWhitelistedVideo(mapping.canonical.exercise_id, whitelist);
   assert.equal(mapping.canonical.exercise_id, 'bridge');
   assert.equal(approved.confidence_tier, CONFIDENCE_TIERS.APPROVED_HIGH_CONFIDENCE);
+});
+
+test('alias normalization converts shorthand exercise names into canonical labels', () => {
+  assert.equal(normalizeExerciseName('clam shell'), 'Sidelying Clamshell');
+  assert.equal(normalizeExerciseName('slr'), 'Straight Leg Raise');
+});
+
+test('youtube search URL builder uses canonical query pattern', () => {
+  const query = buildYoutubeSearchQuery('Sidelying Clamshell');
+  const url = buildYoutubeSearchUrl('Sidelying Clamshell');
+  assert.equal(query, 'Sidelying Clamshell exercise physiotherapy instructions');
+  assert.equal(
+    url,
+    'https://www.youtube.com/results?search_query=Sidelying%20Clamshell%20exercise%20physiotherapy%20instructions'
+  );
 });
