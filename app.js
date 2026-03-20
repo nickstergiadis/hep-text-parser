@@ -3,6 +3,7 @@ import {
   buildFallbackVideo,
   buildYoutubeSearchQuery,
   buildYoutubeSearchUrl,
+  isValidVideoUrl,
   matchExerciseToCanonical,
   normalizeExerciseName,
   resolveWhitelistedVideo
@@ -171,16 +172,18 @@ function buildExerciseObject(line, frequency, index) {
   const canonicalMatch = matchExerciseToCanonical(line, canonicalExerciseLibrary);
   const canonical = canonicalMatch.canonical;
   const extractedName = titleCase(guessExerciseName(line));
-  const displayName = canonical?.canonical_name || extractedName;
+  const displayName = canonical?.canonical_name || extractedName || 'Exercise';
   const canonicalName = normalizeExerciseName(canonical?.canonical_name || extractedName);
   const approvedVideo = canonical ? resolveWhitelistedVideo(canonical.exercise_id, approvedVideoWhitelist) : null;
   const fallbackVideo = buildFallbackVideo(canonical?.exercise_id || null);
-  const manualVideoUrl = approvedVideo?.url || '';
-  const videoMode = manualVideoUrl ? 'direct' : 'youtube_search';
+  const videoOverrideUrl = approvedVideo?.url || '';
+  const hasValidOverrideUrl = isValidVideoUrl(videoOverrideUrl);
+  const hasCanonicalName = Boolean(canonicalName);
+  const videoMode = hasValidOverrideUrl ? 'direct' : (hasCanonicalName ? 'youtube_search' : 'none');
   const videoSearchQuery = videoMode === 'youtube_search' ? buildYoutubeSearchQuery(canonicalName) : '';
   const videoUrl = videoMode === 'direct'
-    ? manualVideoUrl
-    : buildYoutubeSearchUrl(canonicalName);
+    ? videoOverrideUrl
+    : (videoMode === 'youtube_search' ? buildYoutubeSearchUrl(canonicalName) : '');
 
   let notes = line;
   if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
@@ -224,6 +227,7 @@ function buildExerciseObject(line, frequency, index) {
     videoMode,
     videoSearchQuery,
     videoUrl,
+    videoOverrideUrl,
     video_links: videoUrl ? [videoUrl] : [],
     video: approvedVideo || fallbackVideo
   };
@@ -350,7 +354,15 @@ function normalizeTimeUnit(unit) {
 }
 
 function guessExerciseName(line) {
-  return line.replace(/(\d+\s*x\s*\d+|hold\s*\d+\s*(?:sec|min|seconds|minutes))/ig, '').trim() || 'Exercise';
+  const raw = String(line || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/(\d+\s*x\s*\d+|hold\s*\d+\s*(?:sec|min|seconds|minutes))/ig, ' ')
+    .replace(/\b(?:sec|secs|seconds|min|mins|minutes|daily|weekly|x\/week|times per week)\b/ig, ' ')
+    .replace(/\b(?:left|right|each side|per side|each leg|each arm)\b/ig, ' ')
+    .replace(/\b(?:pain|sore|soreness|discomfort|comment|note|notes?)\b.*$/ig, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return raw;
 }
 
 function cleanupNotes(text) {
