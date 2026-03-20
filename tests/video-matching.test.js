@@ -5,6 +5,7 @@ import {
   buildFallbackVideo,
   buildYoutubeSearchQuery,
   buildYoutubeSearchUrl,
+  isValidVideoUrl,
   matchExerciseToCanonical,
   normalizeExerciseName,
   resolveWhitelistedVideo
@@ -70,6 +71,7 @@ test('end-to-end parsed text maps to approved video for bridge', () => {
 test('alias normalization converts shorthand exercise names into canonical labels', () => {
   assert.equal(normalizeExerciseName('clam shell'), 'Sidelying Clamshell');
   assert.equal(normalizeExerciseName('slr'), 'Straight Leg Raise');
+  assert.equal(normalizeExerciseName('chin tuck'), 'Chin Tuck');
 });
 
 test('youtube search URL builder uses canonical query pattern', () => {
@@ -80,4 +82,14 @@ test('youtube search URL builder uses canonical query pattern', () => {
     url,
     'https://www.youtube.com/results?search_query=Sidelying%20Clamshell%20exercise%20physiotherapy%20instructions'
   );
+});
+
+test('exercise name normalization removes dosage and side/pain notes before query generation', () => {
+  assert.equal(normalizeExerciseName('bridge 3x12 each side pain 4/10'), 'Glute Bridge');
+});
+
+test('video override URL validator accepts only http/https links', () => {
+  assert.equal(isValidVideoUrl('https://www.youtube.com/watch?v=abc123'), true);
+  assert.equal(isValidVideoUrl('javascript:alert(1)'), false);
+  assert.equal(isValidVideoUrl(''), false);
 });

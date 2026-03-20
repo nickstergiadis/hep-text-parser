@@ -5,7 +5,8 @@ const EXERCISE_NAME_ALIASES = new Map([
   ['clams', 'Sidelying Clamshell'],
   ['tke', 'Terminal Knee Extension with Band'],
   ['slr', 'Straight Leg Raise'],
-  ['bridge', 'Glute Bridge']
+  ['bridge', 'Glute Bridge'],
+  ['chin tuck', 'Chin Tuck']
 ]);
 
 export function normalizeExerciseText(input) {
@@ -31,10 +32,34 @@ function tokenOverlapScore(a, b) {
 }
 
 export function normalizeExerciseName(name) {
-  const compact = String(name || '').replace(/\s+/g, ' ').trim();
+  const compact = String(name || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!compact) return '';
-  const aliasValue = EXERCISE_NAME_ALIASES.get(compact.toLowerCase());
-  return aliasValue || compact;
+
+  const stripped = compact
+    .replace(/\b(with|using|w\/)\s+(band|resistance band|dumbbell|weights?)\b.*$/i, ' ')
+    .replace(/\b\d+\s*x\s*\d+(?:\s*(?:sec|secs|seconds|min|mins|minutes))?\b.*$/i, ' ')
+    .replace(/\bhold\s+\d+\s*(?:sec|secs|seconds|min|mins|minutes)\b.*$/i, ' ')
+    .replace(/\b(?:each|per)\s+(?:side|leg|arm)\b.*$/i, ' ')
+    .replace(/\b(?:left|right)\b.*$/i, ' ')
+    .replace(/\b(?:pain|sore|soreness|discomfort|comment|note|notes?)\b.*$/i, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!stripped) return '';
+  const aliasValue = EXERCISE_NAME_ALIASES.get(stripped.toLowerCase());
+  return aliasValue || stripped;
+}
+
+export function isValidVideoUrl(url) {
+  try {
+    const parsed = new URL(String(url || '').trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 export function buildYoutubeSearchQuery(canonicalName) {
