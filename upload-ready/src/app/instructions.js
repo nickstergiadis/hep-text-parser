@@ -1,33 +1,33 @@
 const PATIENT_INSTRUCTION_TEMPLATES = {
   bridge: [
-    'Lie on your back with your knees bent and feet flat.',
-    'Tighten your stomach and glutes, then lift your hips.',
-    'Lower slowly back down.'
+    'Lie on your back with knees bent and feet flat on the floor.',
+    'Tighten your belly and squeeze your butt, then lift your hips until your body is in a straight line from shoulders to knees.',
+    'Pause, then lower slowly with control.'
   ],
   wall_sit: [
-    'Stand with your back against the wall and slide down into a partial squat.',
-    'Keep your feet flat and knees in line with your toes.',
-    'Hold, then slowly stand back up.'
+    'Stand with your back against a wall and walk your feet a little forward.',
+    'Slide down into a small squat and keep your knees lined up with your toes.',
+    'Hold, then slide back up slowly.'
   ],
   sls: [
-    'Stand on one leg while keeping your balance.',
-    'Keep your trunk upright and pelvis level.',
-    'Use a counter or wall for support if needed.'
+    'Stand tall near a counter and lift one foot off the floor.',
+    'Keep your chest upright and hips level while you balance on one leg.',
+    'Lightly touch the counter as needed for safety.'
   ],
   clamshell: [
-    'Lie on your side with your knees bent and feet together.',
-    'Keep your hips stacked and lift your top knee.',
-    'Lower slowly without rolling backward.'
+    'Lie on your side with knees bent and feet together.',
+    'Keep your feet touching and lift your top knee without rolling your body backward.',
+    'Lower slowly with control.'
   ],
   heel_raise: [
-    'Stand tall with your feet hip-width apart.',
-    'Press through the balls of your feet and rise onto your toes.',
-    'Lower your heels slowly with control.'
+    'Stand tall near a counter with feet hip-width apart.',
+    'Press through the balls of your feet to rise up onto your toes.',
+    'Lower your heels slowly all the way down.'
   ],
   sit_to_stand: [
-    'Sit near the front of a sturdy chair with your feet flat.',
-    'Lean forward and stand up by pushing through your legs.',
-    'Slowly lower back to the chair with control.'
+    'Sit near the front of a sturdy chair with feet flat.',
+    'Lean your chest forward and stand up by pushing through your legs.',
+    'Lower back down slowly and touch the chair with control.'
   ],
   row: [
     'Stand or sit tall while holding the band handles.',
@@ -35,24 +35,24 @@ const PATIENT_INSTRUCTION_TEMPLATES = {
     'Return slowly without shrugging your shoulders.'
   ],
   squat: [
-    'Stand with your feet about shoulder-width apart.',
-    'Bend your hips and knees to lower into a comfortable squat.',
+    'Stand with feet about shoulder-width apart and toes pointing forward.',
+    'Bend at your hips and knees to sit back into a comfortable squat depth.',
     'Keep your knees in line with your toes and stand back up slowly.'
   ],
   lunge: [
     'Stand tall and step one foot forward into a split stance.',
-    'Lower your body by bending both knees in a controlled way.',
-    'Keep your front knee over your toes and push back to start.'
+    'Lower straight down by bending both knees, keeping your front heel on the floor.',
+    'Keep your front knee lined up with your toes, then push back to start.'
   ],
   calf_stretch: [
-    'Stand facing a wall with one foot back and heel down.',
-    'Lean forward until you feel a stretch in your back calf.',
-    'Keep your back knee straight and hold the stretch.'
+    'Stand facing a wall with one leg back and that heel flat on the floor.',
+    'Bend your front knee and lean forward until you feel a stretch in your back calf.',
+    'Keep your back knee straight and hold without bouncing.'
   ],
   hamstring_stretch: [
-    'Lie on your back and lift one leg with a strap or towel.',
-    'Keep your knee mostly straight as you gently pull the leg up.',
-    'Stop when you feel a stretch in the back of your thigh and hold.'
+    'Lie on your back and loop a strap or towel around one foot.',
+    'Keep that knee mostly straight as you gently raise the leg toward the ceiling.',
+    'Stop at a mild stretch in the back of your thigh and hold.'
   ]
 };
 
@@ -153,4 +153,3 @@ function normalizeKey(value) {
     .trim()
     .replace(/\s/g, '_');
 }
-

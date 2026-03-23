@@ -67,6 +67,42 @@ test('copy summary output is deterministic and includes fallback text', () => {
   assert.match(summary, /Video currently unavailable\./);
 });
 
+test('summary includes search disclaimer exactly once when search video links are present', () => {
+  const summary = buildSummaryText({
+    exercises: [{
+      display_name: 'Bridge',
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Lift your hips, then lower with control.'],
+      video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'],
+      video: null
+    }, {
+      display_name: 'Wall Sit',
+      sets: '3',
+      reps: '',
+      duration: '30 sec',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Slide down the wall and hold.'],
+      video_links: ['https://www.youtube.com/results?search_query=wall+sit+exercise'],
+      video: null
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail: false
+  });
+
+  const matches = summary.match(/Search results may vary\./g) || [];
+  assert.equal(matches.length, 1);
+});
+
 test('email draft generation produces a safe mailto URL', () => {
   const body = buildSummaryText({
     exercises: [],

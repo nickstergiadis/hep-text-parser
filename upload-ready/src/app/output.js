@@ -12,6 +12,11 @@ export function buildDoseString(exercise) {
 export function buildSummaryText({ exercises, title, patientName, date, fallbackMessage, forEmail = false }) {
   const newline = forEmail ? '\r\n' : '\n';
   const lines = [title || 'Home Exercise Program', `Patient: ${patientName || 'Patient'}`, `Date: ${date || '—'}`, '', 'Exercises:'];
+  const hasSearchVideoLinks = exercises.some(exercise => (exercise.video_links || []).length > 0);
+
+  if (hasSearchVideoLinks) {
+    lines.push('Search results may vary. Confirm the title matches your prescribed exercise.', '');
+  }
 
   exercises.forEach((exercise, index) => {
     const dose = buildDoseString(exercise);
