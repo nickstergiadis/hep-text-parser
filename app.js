@@ -38,7 +38,6 @@ let canonicalExerciseLibrary = [];
 let approvedVideoWhitelist = [];
 let dataLoadWarnings = [];
 const TIME_UNIT_PATTERN = '(seconds?|secs?|minutes?|mins?|sec|min|s)';
-const SHOW_CANONICAL_DEBUG = new URLSearchParams(window.location.search).get('debugCanonical') === '1';
 
 (async function boot() {
   await initializeApp();
@@ -253,7 +252,6 @@ function renderEditors() {
   editorListEl.innerHTML = exercises.map((exercise, index) => `
     <article class="editor-card" data-id="${exercise.id}">
       <h3>${index + 1}. ${escapeHtml(exercise.display_name)}</h3>
-      ${SHOW_CANONICAL_DEBUG ? `<span class="raw-chip">Canonical: ${escapeHtml(exercise.canonical_exercise_id || 'none')} (score: ${exercise.canonical_match_score})</span>` : ''}
       <div class="field-block"><label class="small-label">Notes</label><input data-field="notes" value="${escapeAttribute(exercise.notes)}" /></div>
       <div class="field-block"><label class="small-label">Instructions (one per line)</label><textarea data-field="instructions" rows="3">${escapeHtml(exercise.instructions.join('\n'))}</textarea></div>
     </article>

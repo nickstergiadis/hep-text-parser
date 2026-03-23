@@ -12,8 +12,8 @@ test('wall sit terse instruction is upgraded to patient-facing template', () => 
   });
 
   assert.equal(instructions.length, 3);
-  assert.match(instructions[0], /back against the wall/i);
-  assert.match(instructions[1], /knees in line with your toes/i);
+  assert.match(instructions[0], /back against a wall/i);
+  assert.match(instructions[1], /knees lined up with your toes/i);
 });
 
 test('bridge instructions use patient template when canonical text is too short', () => {
@@ -26,7 +26,7 @@ test('bridge instructions use patient template when canonical text is too short'
   });
 
   assert.equal(instructions.length, 3);
-  assert.match(instructions.join(' '), /tighten your stomach and glutes/i);
+  assert.match(instructions.join(' '), /tighten your belly and squeeze your butt/i);
 });
 
 test('existing detailed instructions are preserved when already patient-friendly', () => {
@@ -46,4 +46,3 @@ test('existing detailed instructions are preserved when already patient-friendly
 
   assert.deepEqual(instructions, custom);
 });
-
