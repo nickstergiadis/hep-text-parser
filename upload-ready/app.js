@@ -9,6 +9,7 @@ import {
   normalizeExerciseName,
   resolveWhitelistedVideo
 } from './src/video/matcher.js';
+import { getPatientFacingInstructions } from './src/app/instructions.js';
 import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
 
 let patientNameEl;
@@ -37,6 +38,7 @@ let canonicalExerciseLibrary = [];
 let approvedVideoWhitelist = [];
 let dataLoadWarnings = [];
 const TIME_UNIT_PATTERN = '(seconds?|secs?|minutes?|mins?|sec|min|s)';
+const SHOW_CANONICAL_DEBUG = new URLSearchParams(window.location.search).get('debugCanonical') === '1';
 
 (async function boot() {
   await initializeApp();
@@ -224,7 +226,13 @@ function buildExerciseObject(line, frequency, index) {
     hold: holdMatch ? `${holdMatch[1]} ${normalizeTimeUnit(holdMatch[2])}` : '',
     side: sideMatch ? sideMatch[0] : '',
     frequency: freqInlineMatch ? freqInlineMatch[0] : frequency,
-    instructions: canonical?.instructions_short ? [canonical.instructions_short] : genericInstructions(displayName),
+    instructions: getPatientFacingInstructions({
+      canonicalExerciseId: canonical?.exercise_id || '',
+      canonicalName: canonical?.canonical_name || displayName,
+      displayName,
+      rawInput: line,
+      existingInstructions: canonical?.instructions_short ? [canonical.instructions_short] : genericInstructions(displayName)
+    }),
     notes,
     videoMode,
     videoSearchQuery,
@@ -245,7 +253,7 @@ function renderEditors() {
   editorListEl.innerHTML = exercises.map((exercise, index) => `
     <article class="editor-card" data-id="${exercise.id}">
       <h3>${index + 1}. ${escapeHtml(exercise.display_name)}</h3>
-      <span class="raw-chip">Canonical: ${escapeHtml(exercise.canonical_exercise_id || 'none')} (score: ${exercise.canonical_match_score})</span>
+      ${SHOW_CANONICAL_DEBUG ? `<span class="raw-chip">Canonical: ${escapeHtml(exercise.canonical_exercise_id || 'none')} (score: ${exercise.canonical_match_score})</span>` : ''}
       <div class="field-block"><label class="small-label">Notes</label><input data-field="notes" value="${escapeAttribute(exercise.notes)}" /></div>
       <div class="field-block"><label class="small-label">Instructions (one per line)</label><textarea data-field="instructions" rows="3">${escapeHtml(exercise.instructions.join('\n'))}</textarea></div>
     </article>
@@ -277,17 +285,23 @@ function renderPreview() {
     return;
   }
 
-  exerciseListEl.innerHTML = exercises.map((exercise, index) => {
+  const showVideoSearchDisclaimer = exercises.some(exercise => String(exercise.videoUrl || '').trim());
+  const cardsHtml = exercises.map((exercise, index) => {
     const dose = buildDoseString(exercise);
     const instructions = `<ol class="instructions-list">${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
     const safeVideoUrl = String(exercise.videoUrl || '').trim();
     const videoSection = safeVideoUrl
-      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">Find demo video</a></li></ul><p class="small-label">Search results may vary. Confirm the title matches your prescribed exercise.</p></div>`
+      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">Find demo video</a></li></ul></div>`
       : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
     const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : '';
 
     return `<article class="exercise-card"><div class="exercise-top"><p class="exercise-name">${index + 1}. ${escapeHtml(exercise.display_name)}</p><div class="exercise-dose">${escapeHtml(dose)}</div></div>${instructions}${videoSection}${notes}</article>`;
   }).join('');
+
+  const disclaimer = showVideoSearchDisclaimer
+    ? '<p class="video-disclaimer">Search results may vary. Confirm the title matches your prescribed exercise.</p>'
+    : '';
+  exerciseListEl.innerHTML = `${disclaimer}${cardsHtml}`;
 }
 
 function syncPreviewHeader() {
