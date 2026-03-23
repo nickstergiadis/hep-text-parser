@@ -1,3 +1,5 @@
+import { resolveExerciseInstructions } from './instructions.js';
+
 export function buildDoseString(exercise) {
   const parts = [];
   if (exercise.sets && exercise.reps) parts.push(`${exercise.sets} sets x ${exercise.reps} reps`);
@@ -19,9 +21,18 @@ export function buildSummaryText({ exercises, title, patientName, date, fallback
   }
 
   exercises.forEach((exercise, index) => {
+    const resolved = resolveExerciseInstructions({
+      canonicalExerciseId: exercise.canonical_exercise_id,
+      canonicalName: exercise.canonicalName || exercise.display_name,
+      displayName: exercise.display_name,
+      rawInput: exercise.raw_input,
+      aliases: exercise.canonical_aliases || [],
+      existingInstructions: exercise.instructions,
+      instructionSource: exercise.instruction_source
+    });
     const dose = buildDoseString(exercise);
     lines.push(`${index + 1}. ${exercise.display_name}${dose ? ` — ${dose}` : ''}`);
-    (exercise.instructions || []).forEach(step => lines.push(`   - ${step}`));
+    resolved.instructions.forEach(step => lines.push(`   - ${step}`));
     if ((exercise.video_links || []).length) {
       exercise.video_links.forEach(url => lines.push(`   - ${url}`));
     } else {
