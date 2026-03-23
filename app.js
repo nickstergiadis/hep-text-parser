@@ -1,14 +1,11 @@
 import { VIDEO_MATCHING_CONFIG } from './src/video/config.js';
 import {
-  buildFallbackVideo,
-  buildYoutubeSearchQuery,
-  buildYoutubeSearchUrl,
   cleanExerciseLabel,
   isUsefulExerciseName,
   matchExerciseToCanonical,
-  normalizeExerciseName,
-  resolveWhitelistedVideo
+  normalizeExerciseName
 } from './src/video/matcher.js';
+import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
 import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
 
@@ -38,6 +35,7 @@ let canonicalExerciseLibrary = [];
 let approvedVideoWhitelist = [];
 let dataLoadWarnings = [];
 const TIME_UNIT_PATTERN = '(seconds?|secs?|minutes?|mins?|sec|min|s)';
+const DRAFT_STORAGE_KEY = 'hep_builder_draft_v2';
 
 (async function boot() {
   await initializeApp();
@@ -49,9 +47,12 @@ async function initializeApp() {
 
   await loadVideoMatchingData();
   setDefaultDate();
+  restoreDraftState();
   renderEditors();
   renderPreview();
   bindActionButtons();
+  bindFormInputs();
+  syncPreviewHeader();
 }
 
 async function loadVideoMatchingData() {
@@ -119,6 +120,21 @@ function bindActionButtons() {
   copySummaryBtn?.addEventListener('click', copySummary);
 }
 
+function bindFormInputs() {
+  [patientNameEl, recipientEmailEl, programTitleEl, programDateEl, introTextEl, inputTextEl]
+    .filter(Boolean)
+    .forEach(field => {
+      field.addEventListener('input', () => {
+        syncPreviewHeader();
+        persistDraftState();
+      });
+      field.addEventListener('change', () => {
+        syncPreviewHeader();
+        persistDraftState();
+      });
+    });
+}
+
 function setDefaultDate() {
   if (!programDateEl) return;
   const today = new Date();
@@ -146,6 +162,7 @@ function generateProgram() {
     lastParsedInputText = '';
     renderEditors();
     renderPreview();
+    persistDraftState();
     return;
   }
 
@@ -153,6 +170,7 @@ function generateProgram() {
   lastParsedInputText = rawText;
   renderEditors();
   renderPreview();
+  persistDraftState();
 }
 
 function parseRoughInput(text) {
@@ -180,13 +198,13 @@ function buildExerciseObject(line, frequency, index) {
   const displayName = canonical?.canonical_name || extractedName || 'Exercise';
   const normalizedCanonicalName = normalizeExerciseName(canonical?.canonical_name || extractedName);
   const canonicalName = isUsefulExerciseName(normalizedCanonicalName) ? normalizedCanonicalName : '';
-  const approvedVideo = canonical ? resolveWhitelistedVideo(canonical.exercise_id, approvedVideoWhitelist) : null;
-  const fallbackVideo = buildFallbackVideo(canonical?.exercise_id || null);
-  const videoOverrideUrl = approvedVideo?.url || '';
+  const videoAssignment = resolveExerciseVideoAssignment({
+    canonicalExerciseId: canonical?.exercise_id || null,
+    whitelist: approvedVideoWhitelist
+  });
   const hasCanonicalName = Boolean(canonicalName);
-  const videoMode = hasCanonicalName ? 'youtube_search' : 'none';
-  const videoSearchQuery = videoMode === 'youtube_search' ? buildYoutubeSearchQuery(canonicalName) : '';
-  const videoUrl = videoMode === 'youtube_search' ? buildYoutubeSearchUrl(canonicalName) : '';
+  const videoMode = hasCanonicalName ? videoAssignment.videoMode : 'none';
+  const videoUrl = hasCanonicalName ? videoAssignment.videoUrl : '';
 
   let notes = line;
   if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
@@ -240,11 +258,10 @@ function buildExerciseObject(line, frequency, index) {
     instruction_source: resolvedInstructions.instructionSource,
     notes,
     videoMode,
-    videoSearchQuery,
     videoUrl,
-    videoOverrideUrl,
-    video_links: videoUrl ? [videoUrl] : [],
-    video: approvedVideo || fallbackVideo
+    videoOverrideUrl: videoAssignment.videoOverrideUrl,
+    video_links: videoAssignment.video_links,
+    video: videoAssignment.video
   };
 }
 
@@ -258,6 +275,17 @@ function renderEditors() {
   editorListEl.innerHTML = exercises.map((exercise, index) => `
     <article class="editor-card" data-id="${exercise.id}">
       <h3>${index + 1}. ${escapeHtml(exercise.display_name)}</h3>
+      <div class="field-block"><label class="small-label">Exercise name</label><input data-field="display_name" value="${escapeAttribute(exercise.display_name)}" /></div>
+      <div class="grid three-col field-block">
+        <div><label class="small-label">Sets</label><input data-field="sets" value="${escapeAttribute(exercise.sets)}" /></div>
+        <div><label class="small-label">Reps</label><input data-field="reps" value="${escapeAttribute(exercise.reps)}" /></div>
+        <div><label class="small-label">Duration</label><input data-field="duration" value="${escapeAttribute(exercise.duration)}" placeholder="e.g. 30 sec" /></div>
+      </div>
+      <div class="grid three-col field-block">
+        <div><label class="small-label">Hold</label><input data-field="hold" value="${escapeAttribute(exercise.hold)}" placeholder="e.g. 5 sec" /></div>
+        <div><label class="small-label">Side</label><input data-field="side" value="${escapeAttribute(exercise.side)}" /></div>
+        <div><label class="small-label">Frequency</label><input data-field="frequency" value="${escapeAttribute(exercise.frequency)}" /></div>
+      </div>
       <div class="field-block"><label class="small-label">Notes</label><input data-field="notes" value="${escapeAttribute(exercise.notes)}" /></div>
       <div class="field-block"><label class="small-label">Instructions (one per line)</label><textarea data-field="instructions" rows="3">${escapeHtml(exercise.instructions.join('\n'))}</textarea></div>
     </article>
@@ -278,6 +306,7 @@ function handleEditorChange(event) {
   }
   else exercise[field] = event.target.value;
   renderPreview();
+  persistDraftState();
 }
 
 function renderPreview() {
@@ -292,7 +321,7 @@ function renderPreview() {
     return;
   }
 
-  const showVideoSearchDisclaimer = exercises.some(exercise => String(exercise.videoUrl || '').trim());
+  const showVideoSearchDisclaimer = exercises.some(exercise => exercise.videoMode === 'youtube_search');
   const cardsHtml = exercises.map((exercise, index) => {
     const resolvedExercise = resolveInstructionsForExercise(exercise);
     const dose = buildDoseString(exercise);
@@ -379,6 +408,72 @@ function resolveInstructionsForExercise(exercise) {
   }
 
   return exercise;
+}
+
+function persistDraftState() {
+  try {
+    const payload = {
+      patientName: patientNameEl?.value || '',
+      recipientEmail: recipientEmailEl?.value || '',
+      programTitle: programTitleEl?.value || '',
+      programDate: programDateEl?.value || '',
+      introText: introTextEl?.value || '',
+      inputText: inputTextEl?.value || '',
+      lastParsedInputText,
+      exercises: exercises.map(exercise => ({
+        ...exercise,
+        instructions: Array.isArray(exercise.instructions) ? [...exercise.instructions] : []
+      }))
+    };
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // no-op in restricted contexts
+  }
+}
+
+function restoreDraftState() {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    if (typeof payload !== 'object' || !payload) return;
+
+    if (patientNameEl && typeof payload.patientName === 'string') patientNameEl.value = payload.patientName;
+    if (recipientEmailEl && typeof payload.recipientEmail === 'string') recipientEmailEl.value = payload.recipientEmail;
+    if (programTitleEl && typeof payload.programTitle === 'string') programTitleEl.value = payload.programTitle;
+    if (programDateEl && typeof payload.programDate === 'string' && payload.programDate) programDateEl.value = payload.programDate;
+    if (introTextEl && typeof payload.introText === 'string') introTextEl.value = payload.introText;
+    if (inputTextEl && typeof payload.inputText === 'string') inputTextEl.value = payload.inputText;
+    if (typeof payload.lastParsedInputText === 'string') lastParsedInputText = payload.lastParsedInputText;
+    if (Array.isArray(payload.exercises)) {
+      exercises = payload.exercises.map((exercise, index) => hydrateExercise(exercise, index));
+    }
+  } catch {
+    exercises = [];
+    lastParsedInputText = '';
+  }
+}
+
+function hydrateExercise(exercise, index) {
+  const safeExercise = exercise && typeof exercise === 'object' ? exercise : {};
+  const canonicalExerciseId = safeExercise.canonical_exercise_id || null;
+  const videoAssignment = resolveExerciseVideoAssignment({
+    canonicalExerciseId,
+    whitelist: approvedVideoWhitelist
+  });
+  return {
+    ...safeExercise,
+    id: safeExercise.id || `restored-${index}-${Date.now()}`,
+    canonical_exercise_id: canonicalExerciseId,
+    display_name: safeExercise.display_name || safeExercise.name || 'Exercise',
+    instructions: Array.isArray(safeExercise.instructions) ? splitInputLines(safeExercise.instructions.join('\n')) : [],
+    instruction_source: safeExercise.instruction_source || 'generated',
+    videoMode: videoAssignment.videoMode,
+    videoUrl: videoAssignment.videoUrl,
+    videoOverrideUrl: videoAssignment.videoOverrideUrl,
+    video_links: videoAssignment.video_links,
+    video: videoAssignment.video
+  };
 }
 
 function genericInstructions(name) {
