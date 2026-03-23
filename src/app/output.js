@@ -9,12 +9,7 @@ function isSearchLink(url) {
 
 function isSearchVideoExercise(exercise) {
   const source = String(exercise?.videoSource || '').trim().toLowerCase();
-  if (source === 'search') return true;
-
-  const mode = String(exercise?.videoMode || '').trim().toLowerCase();
-  if (mode === 'youtube_search') return true;
-
-  if ((source || mode) && source !== 'search' && mode !== 'youtube_search') return false;
+  if (source) return source === 'search';
 
   return (exercise?.video_links || []).some(isSearchLink);
 }

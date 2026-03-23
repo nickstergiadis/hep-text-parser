@@ -101,7 +101,6 @@ test('summary includes search disclaimer exactly once when search video links ar
   const summary = buildSummaryText({
     exercises: [{
       display_name: 'Bridge',
-      videoMode: 'youtube_search',
       videoSource: 'search',
       sets: '3',
       reps: '10',
@@ -114,7 +113,6 @@ test('summary includes search disclaimer exactly once when search video links ar
       video: null
     }, {
       display_name: 'Wall Sit',
-      videoMode: 'youtube_search',
       videoSource: 'search',
       sets: '3',
       reps: '',
@@ -163,6 +161,32 @@ test('summary does not include search disclaimer for curated whitelist links', (
   assert.doesNotMatch(summary, /Search results may vary\./);
 });
 
+test('explicit curated source suppresses search disclaimer even if links look like search URLs', () => {
+  const summary = buildSummaryText({
+    exercises: [{
+      display_name: 'Bridge',
+      videoMode: 'whitelist',
+      videoSource: 'curated',
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Lift your hips, then lower with control.'],
+      video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'],
+      video: null
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail: false
+  });
+
+  assert.doesNotMatch(summary, /Search results may vary\./);
+});
+
 test('summary does not include search disclaimer when there are no video links', () => {
   const summary = buildSummaryText({
     exercises: [{
@@ -192,11 +216,13 @@ test('summary does not include search disclaimer when there are no video links',
 test('preview and summary disclaimer logic share the same source-of-truth helper', () => {
   const curated = [{ videoMode: 'whitelist', videoSource: 'curated', video_links: ['https://www.youtube.com/watch?v=approved123'] }];
   const noLinks = [{ videoMode: 'none', videoSource: 'none', video_links: [] }];
-  const search = [{ videoMode: 'youtube_search', videoSource: 'search', video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'] }];
+  const search = [{ videoMode: 'none', videoSource: 'search', video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'] }];
+  const legacySearchLinksWithoutSource = [{ video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'] }];
 
   assert.equal(shouldShowSearchVideoDisclaimer(curated), false);
   assert.equal(shouldShowSearchVideoDisclaimer(noLinks), false);
   assert.equal(shouldShowSearchVideoDisclaimer(search), true);
+  assert.equal(shouldShowSearchVideoDisclaimer(legacySearchLinksWithoutSource), true);
 });
 
 test('email draft generation produces a safe mailto URL', () => {
