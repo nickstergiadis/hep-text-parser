@@ -1,4 +1,27 @@
 import { resolveExerciseInstructions } from './instructions.js';
+const SEARCH_RESULTS_DISCLAIMER = 'Search results may vary. Confirm the title matches your prescribed exercise.';
+
+function isSearchLink(url) {
+  const value = String(url || '').trim().toLowerCase();
+  return value.startsWith('https://www.youtube.com/results?search_query=')
+    || value.startsWith('http://www.youtube.com/results?search_query=');
+}
+
+function isSearchVideoExercise(exercise) {
+  const source = String(exercise?.videoSource || '').trim().toLowerCase();
+  if (source === 'search') return true;
+
+  const mode = String(exercise?.videoMode || '').trim().toLowerCase();
+  if (mode === 'youtube_search') return true;
+
+  if ((source || mode) && source !== 'search' && mode !== 'youtube_search') return false;
+
+  return (exercise?.video_links || []).some(isSearchLink);
+}
+
+export function shouldShowSearchVideoDisclaimer(exercises = []) {
+  return exercises.some(isSearchVideoExercise);
+}
 
 export function buildDoseString(exercise) {
   const parts = [];
@@ -14,10 +37,10 @@ export function buildDoseString(exercise) {
 export function buildSummaryText({ exercises, title, patientName, date, fallbackMessage, forEmail = false }) {
   const newline = forEmail ? '\r\n' : '\n';
   const lines = [title || 'Home Exercise Program', `Patient: ${patientName || 'Patient'}`, `Date: ${date || '—'}`, '', 'Exercises:'];
-  const hasSearchVideoLinks = exercises.some(exercise => (exercise.video_links || []).length > 0);
+  const hasSearchVideoLinks = shouldShowSearchVideoDisclaimer(exercises);
 
   if (hasSearchVideoLinks) {
-    lines.push('Search results may vary. Confirm the title matches your prescribed exercise.', '');
+    lines.push(SEARCH_RESULTS_DISCLAIMER, '');
   }
 
   exercises.forEach((exercise, index) => {

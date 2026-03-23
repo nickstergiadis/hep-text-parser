@@ -9,6 +9,7 @@ export function resolveExerciseVideoAssignment({ canonicalExerciseId, whitelist 
   if (approvedVideo && usableApprovedUrl) {
     return {
       videoMode: 'whitelist',
+      videoSource: 'curated',
       videoUrl: usableApprovedUrl,
       video_links: [usableApprovedUrl],
       videoOverrideUrl: usableApprovedUrl,
@@ -18,6 +19,7 @@ export function resolveExerciseVideoAssignment({ canonicalExerciseId, whitelist 
 
   return {
     videoMode: 'none',
+    videoSource: 'none',
     videoUrl: '',
     video_links: [],
     videoOverrideUrl: '',
