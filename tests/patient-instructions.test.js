@@ -1,48 +1,79 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getPatientFacingInstructions } from '../src/app/instructions.js';
+import { resolveExerciseInstructions } from '../src/app/instructions.js';
 
-test('wall sit terse instruction is upgraded to patient-facing template', () => {
-  const instructions = getPatientFacingInstructions({
+test('canonical exercise gets patient-friendly template', () => {
+  const result = resolveExerciseInstructions({
+    canonicalExerciseId: 'bridge',
+    canonicalName: 'Glute Bridge',
+    displayName: 'Bridge',
+    rawInput: 'bridge 3x10',
+    existingInstructions: ['Bridge up.'],
+    instructionSource: 'generated'
+  });
+
+  assert.equal(result.instructionSource, 'template');
+  assert.equal(result.instructions.length, 3);
+  assert.match(result.instructions[0], /lie on your back/i);
+});
+
+test('alias resolves to canonical template', () => {
+  const result = resolveExerciseInstructions({
+    canonicalName: 'single leg balance',
+    displayName: 'SLS',
+    rawInput: 'SLS hold',
+    existingInstructions: ['SLS hold.'],
+    instructionSource: 'generated'
+  });
+
+  assert.equal(result.instructionSource, 'template');
+  assert.match(result.instructions.join(' '), /use a wall or counter for support/i);
+});
+
+test('weak generated instruction gets upgraded', () => {
+  const result = resolveExerciseInstructions({
     canonicalExerciseId: 'wall_sit',
     canonicalName: 'Wall Sit',
     displayName: 'Wall Sit',
     rawInput: 'wall sit 3x30 sec',
-    existingInstructions: ['Hold partial squat against wall.']
+    existingInstructions: ['Hold partial squat against wall.'],
+    instructionSource: 'generated'
   });
 
-  assert.equal(instructions.length, 3);
-  assert.match(instructions[0], /back against a wall/i);
-  assert.match(instructions[1], /knees lined up with your toes/i);
+  assert.equal(result.wasUpgraded, true);
+  assert.match(result.instructions[0], /back against the wall/i);
 });
 
-test('bridge instructions use patient template when canonical text is too short', () => {
-  const instructions = getPatientFacingInstructions({
-    canonicalExerciseId: 'bridge',
-    canonicalName: 'Bridge',
-    displayName: 'Bridge',
-    rawInput: 'bridge with band',
-    existingInstructions: ['Lift hips while keeping ribs down.']
-  });
-
-  assert.equal(instructions.length, 3);
-  assert.match(instructions.join(' '), /tighten your belly and squeeze your butt/i);
-});
-
-test('existing detailed instructions are preserved when already patient-friendly', () => {
+test('custom user-edited instruction is preserved', () => {
   const custom = [
-    'Stand tall with one hand on the counter for support.',
+    'Stand tall with one hand on a counter for support.',
     'Lift your heel slowly, then lower with control.',
     'Keep your knees straight and your weight even on both feet.'
   ];
 
-  const instructions = getPatientFacingInstructions({
-    canonicalExerciseId: 'heel_raise_double',
+  const result = resolveExerciseInstructions({
+    canonicalExerciseId: 'heel_raise',
     canonicalName: 'Double Leg Heel Raise',
     displayName: 'Double Leg Heel Raise',
     rawInput: 'heel raise 3x10',
-    existingInstructions: custom
+    existingInstructions: custom,
+    instructionSource: 'custom'
   });
 
-  assert.deepEqual(instructions, custom);
+  assert.equal(result.instructionSource, 'custom');
+  assert.deepEqual(result.instructions, custom);
+});
+
+test('unknown exercise falls back safely', () => {
+  const result = resolveExerciseInstructions({
+    canonicalName: 'Unknown Drill',
+    displayName: 'Unknown Drill',
+    rawInput: 'weird thing 2x10',
+    existingInstructions: [],
+    instructionSource: 'generated'
+  });
+
+  assert.equal(result.instructionSource, 'fallback');
+  assert.equal(result.instructions.length, 3);
+  assert.match(result.instructions[0], /set up for unknown drill/i);
 });
