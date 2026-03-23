@@ -67,6 +67,36 @@ test('copy summary output is deterministic and includes fallback text', () => {
   assert.match(summary, /Video currently unavailable\./);
 });
 
+test('summary output upgrades weak generated instructions via templates', () => {
+  const summary = buildSummaryText({
+    exercises: [{
+      display_name: 'Wall Sit',
+      canonical_exercise_id: 'wall_sit',
+      canonicalName: 'Wall Sit',
+      raw_input: 'wall sit 3x30 sec',
+      canonical_aliases: ['wall sit'],
+      instruction_source: 'generated',
+      sets: '3',
+      reps: '',
+      duration: '30 sec',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Hold partial squat against wall.'],
+      video_links: [],
+      video: { message: VIDEO_MATCHING_CONFIG.fallback.message }
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail: false
+  });
+
+  assert.match(summary, /back against the wall/i);
+  assert.doesNotMatch(summary, /Hold partial squat against wall/i);
+});
+
 test('summary includes search disclaimer exactly once when search video links are present', () => {
   const summary = buildSummaryText({
     exercises: [{

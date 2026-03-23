@@ -9,7 +9,7 @@ import {
   normalizeExerciseName,
   resolveWhitelistedVideo
 } from './src/video/matcher.js';
-import { getPatientFacingInstructions } from './src/app/instructions.js';
+import { resolveExerciseInstructions } from './src/app/instructions.js';
 import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
 
 let patientNameEl;
@@ -211,6 +211,16 @@ function buildExerciseObject(line, frequency, index) {
 
   if (!notes || looksLikeNameOnly || looksLikeAliasOnly) notes = '';
 
+  const resolvedInstructions = resolveExerciseInstructions({
+    canonicalExerciseId: canonical?.exercise_id || '',
+    canonicalName: canonical?.canonical_name || displayName,
+    displayName,
+    rawInput: line,
+    aliases: canonical?.aliases || [],
+    existingInstructions: canonical?.instructions_short ? [canonical.instructions_short] : genericInstructions(displayName),
+    instructionSource: 'generated'
+  });
+
   return {
     id: `ex-${index}-${Date.now()}`,
     raw_input: line,
@@ -218,6 +228,7 @@ function buildExerciseObject(line, frequency, index) {
     display_name: displayName,
     canonicalName,
     canonical_exercise_id: canonical?.exercise_id || null,
+    canonical_aliases: canonical?.aliases || [],
     canonical_match_score: canonicalMatch.matchScore,
     sets: setsDurationMatch ? setsDurationMatch[1] : (setsRepsMatch ? setsRepsMatch[1] : ''),
     reps: setsDurationMatch ? '' : (setsRepsMatch ? setsRepsMatch[2] : ''),
@@ -225,13 +236,8 @@ function buildExerciseObject(line, frequency, index) {
     hold: holdMatch ? `${holdMatch[1]} ${normalizeTimeUnit(holdMatch[2])}` : '',
     side: sideMatch ? sideMatch[0] : '',
     frequency: freqInlineMatch ? freqInlineMatch[0] : frequency,
-    instructions: getPatientFacingInstructions({
-      canonicalExerciseId: canonical?.exercise_id || '',
-      canonicalName: canonical?.canonical_name || displayName,
-      displayName,
-      rawInput: line,
-      existingInstructions: canonical?.instructions_short ? [canonical.instructions_short] : genericInstructions(displayName)
-    }),
+    instructions: resolvedInstructions.instructions,
+    instruction_source: resolvedInstructions.instructionSource,
     notes,
     videoMode,
     videoSearchQuery,
@@ -266,7 +272,10 @@ function handleEditorChange(event) {
   const field = event.target.dataset.field;
   const exercise = exercises.find(item => item.id === id);
   if (!exercise) return;
-  if (field === 'instructions') exercise.instructions = splitInputLines(event.target.value);
+  if (field === 'instructions') {
+    exercise.instructions = splitInputLines(event.target.value);
+    exercise.instruction_source = 'custom';
+  }
   else exercise[field] = event.target.value;
   renderPreview();
 }
@@ -285,8 +294,9 @@ function renderPreview() {
 
   const showVideoSearchDisclaimer = exercises.some(exercise => String(exercise.videoUrl || '').trim());
   const cardsHtml = exercises.map((exercise, index) => {
+    const resolvedExercise = resolveInstructionsForExercise(exercise);
     const dose = buildDoseString(exercise);
-    const instructions = `<ol class="instructions-list">${exercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
+    const instructions = `<ol class="instructions-list">${resolvedExercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
     const safeVideoUrl = String(exercise.videoUrl || '').trim();
     const videoSection = safeVideoUrl
       ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">Find demo video</a></li></ul></div>`
@@ -343,13 +353,32 @@ async function copySummary() {
 
 function buildSummaryTextForProgram(forEmail) {
   return buildSummaryText({
-    exercises,
+    exercises: exercises.map(resolveInstructionsForExercise),
     title: programTitleEl?.value.trim() || 'Home Exercise Program',
     patientName: patientNameEl?.value.trim() || 'Patient',
     date: formatDate(programDateEl?.value),
     fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
     forEmail
   });
+}
+
+function resolveInstructionsForExercise(exercise) {
+  const resolved = resolveExerciseInstructions({
+    canonicalExerciseId: exercise.canonical_exercise_id,
+    canonicalName: exercise.canonicalName || exercise.display_name,
+    displayName: exercise.display_name,
+    rawInput: exercise.raw_input,
+    aliases: exercise.canonical_aliases || [],
+    existingInstructions: exercise.instructions,
+    instructionSource: exercise.instruction_source
+  });
+
+  if (resolved.instructions !== exercise.instructions || resolved.instructionSource !== exercise.instruction_source) {
+    exercise.instructions = resolved.instructions;
+    exercise.instruction_source = resolved.instructionSource;
+  }
+
+  return exercise;
 }
 
 function genericInstructions(name) {
