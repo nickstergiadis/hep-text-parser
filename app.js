@@ -7,7 +7,7 @@ import {
 } from './src/video/matcher.js';
 import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
-import { buildDoseString, buildEmailDraftHref, buildSummaryText } from './src/app/output.js';
+import { buildDoseString, buildEmailDraftHref, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
 
 let patientNameEl;
 let recipientEmailEl;
@@ -258,6 +258,7 @@ function buildExerciseObject(line, frequency, index) {
     instruction_source: resolvedInstructions.instructionSource,
     notes,
     videoMode,
+    videoSource: videoAssignment.videoSource,
     videoUrl,
     videoOverrideUrl: videoAssignment.videoOverrideUrl,
     video_links: videoAssignment.video_links,
@@ -321,7 +322,7 @@ function renderPreview() {
     return;
   }
 
-  const showVideoSearchDisclaimer = exercises.some(exercise => exercise.videoMode === 'youtube_search');
+  const showVideoSearchDisclaimer = shouldShowSearchVideoDisclaimer(exercises);
   const cardsHtml = exercises.map((exercise, index) => {
     const resolvedExercise = resolveInstructionsForExercise(exercise);
     const dose = buildDoseString(exercise);
@@ -469,6 +470,7 @@ function hydrateExercise(exercise, index) {
     instructions: Array.isArray(safeExercise.instructions) ? splitInputLines(safeExercise.instructions.join('\n')) : [],
     instruction_source: safeExercise.instruction_source || 'generated',
     videoMode: videoAssignment.videoMode,
+    videoSource: videoAssignment.videoSource,
     videoUrl: videoAssignment.videoUrl,
     videoOverrideUrl: videoAssignment.videoOverrideUrl,
     video_links: videoAssignment.video_links,

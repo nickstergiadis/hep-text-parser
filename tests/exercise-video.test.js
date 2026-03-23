@@ -13,6 +13,7 @@ test('approved whitelist videos are used directly', () => {
   });
 
   assert.equal(result.videoMode, 'whitelist');
+  assert.equal(result.videoSource, 'curated');
   assert.equal(result.video_links.length, 1);
   assert.match(result.video_links[0], /^https:\/\/www\.youtube\.com\/watch\?/);
 });
@@ -24,6 +25,7 @@ test('missing whitelist entries return deterministic fallback', () => {
   });
 
   assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
   assert.equal(result.video_links.length, 0);
   assert.equal(result.video.message, VIDEO_MATCHING_CONFIG.fallback.message);
 });
@@ -40,5 +42,6 @@ test('invalid whitelist urls are rejected for safety', () => {
   });
 
   assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
   assert.equal(result.video_links.length, 0);
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { matchExerciseToCanonical, resolveWhitelistedVideo, buildFallbackVideo } from '../src/video/matcher.js';
 import { VIDEO_MATCHING_CONFIG } from '../src/video/config.js';
-import { buildDoseString, buildEmailDraftHref, buildSummaryText } from '../src/app/output.js';
+import { buildDoseString, buildEmailDraftHref, buildSummaryText, shouldShowSearchVideoDisclaimer } from '../src/app/output.js';
 
 const exercises = JSON.parse(fs.readFileSync(new URL('../data/exercises_master.json', import.meta.url), 'utf8'));
 const whitelist = JSON.parse(fs.readFileSync(new URL('../data/video_whitelist.json', import.meta.url), 'utf8'));
@@ -101,6 +101,8 @@ test('summary includes search disclaimer exactly once when search video links ar
   const summary = buildSummaryText({
     exercises: [{
       display_name: 'Bridge',
+      videoMode: 'youtube_search',
+      videoSource: 'search',
       sets: '3',
       reps: '10',
       duration: '',
@@ -112,6 +114,8 @@ test('summary includes search disclaimer exactly once when search video links ar
       video: null
     }, {
       display_name: 'Wall Sit',
+      videoMode: 'youtube_search',
+      videoSource: 'search',
       sets: '3',
       reps: '',
       duration: '30 sec',
@@ -131,6 +135,68 @@ test('summary includes search disclaimer exactly once when search video links ar
 
   const matches = summary.match(/Search results may vary\./g) || [];
   assert.equal(matches.length, 1);
+});
+
+test('summary does not include search disclaimer for curated whitelist links', () => {
+  const summary = buildSummaryText({
+    exercises: [{
+      display_name: 'Bridge',
+      videoMode: 'whitelist',
+      videoSource: 'curated',
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Lift your hips, then lower with control.'],
+      video_links: ['https://www.youtube.com/watch?v=approved123'],
+      video: null
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail: false
+  });
+
+  assert.doesNotMatch(summary, /Search results may vary\./);
+});
+
+test('summary does not include search disclaimer when there are no video links', () => {
+  const summary = buildSummaryText({
+    exercises: [{
+      display_name: 'Wall Sit',
+      videoMode: 'none',
+      videoSource: 'none',
+      sets: '3',
+      reps: '',
+      duration: '30 sec',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Slide down a wall and hold with control.'],
+      video_links: [],
+      video: { message: VIDEO_MATCHING_CONFIG.fallback.message }
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    forEmail: false
+  });
+
+  assert.doesNotMatch(summary, /Search results may vary\./);
+});
+
+test('preview and summary disclaimer logic share the same source-of-truth helper', () => {
+  const curated = [{ videoMode: 'whitelist', videoSource: 'curated', video_links: ['https://www.youtube.com/watch?v=approved123'] }];
+  const noLinks = [{ videoMode: 'none', videoSource: 'none', video_links: [] }];
+  const search = [{ videoMode: 'youtube_search', videoSource: 'search', video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'] }];
+
+  assert.equal(shouldShowSearchVideoDisclaimer(curated), false);
+  assert.equal(shouldShowSearchVideoDisclaimer(noLinks), false);
+  assert.equal(shouldShowSearchVideoDisclaimer(search), true);
 });
 
 test('email draft generation produces a safe mailto URL', () => {
