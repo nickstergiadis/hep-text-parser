@@ -97,7 +97,7 @@ export function isValidVideoUrl(url) {
 export function buildYoutubeSearchQuery(canonicalName) {
   const normalizedName = normalizeExerciseName(canonicalName);
   if (!normalizedName) return '';
-  return `${normalizedName} exercise physiotherapy instructions`;
+  return `${normalizedName} exercise`;
 }
 
 export function buildYoutubeSearchUrl(canonicalName) {

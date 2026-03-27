@@ -205,11 +205,9 @@ function buildExerciseObject(line, frequency, index) {
   const canonicalName = isUsefulExerciseName(normalizedCanonicalName) ? normalizedCanonicalName : '';
   const videoAssignment = resolveExerciseVideoAssignment({
     canonicalExerciseId: canonical?.exercise_id || null,
+    exerciseName: canonical?.canonical_name || extractedName,
     whitelist: approvedVideoWhitelist
   });
-  const hasCanonicalName = Boolean(canonicalName);
-  const videoMode = hasCanonicalName ? videoAssignment.videoMode : 'none';
-  const videoUrl = hasCanonicalName ? videoAssignment.videoUrl : '';
 
   let notes = line;
   if (setsDurationMatch) notes = removeText(notes, setsDurationMatch[0]);
@@ -262,9 +260,10 @@ function buildExerciseObject(line, frequency, index) {
     instructions: resolvedInstructions.instructions,
     instruction_source: resolvedInstructions.instructionSource,
     notes,
-    videoMode,
+    videoMode: videoAssignment.videoMode,
     videoSource: videoAssignment.videoSource,
-    videoUrl,
+    videoLabel: videoAssignment.videoLabel,
+    videoUrl: videoAssignment.videoUrl,
     videoOverrideUrl: videoAssignment.videoOverrideUrl,
     video_links: videoAssignment.video_links,
     video: videoAssignment.video
@@ -334,8 +333,9 @@ function renderPreview() {
     const dose = buildDoseString(exercise);
     const instructions = `<ol class="instructions-list">${resolvedExercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
     const safeVideoUrl = String(exercise.videoUrl || '').trim();
+    const videoLabel = exercise.videoMode === 'search' ? 'Video search' : (exercise.videoLabel || 'Watch video');
     const videoSection = safeVideoUrl
-      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">Find demo video</a></li></ul></div>`
+      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoLabel)}</a></li></ul></div>`
       : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
     const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : '';
 
@@ -520,7 +520,10 @@ function hydrateExercise(exercise, index) {
   const canonicalExerciseId = safeExercise.canonical_exercise_id || null;
   const videoAssignment = resolveExerciseVideoAssignment({
     canonicalExerciseId,
-    whitelist: approvedVideoWhitelist
+    exerciseName: safeExercise.canonicalName || safeExercise.display_name || safeExercise.name || '',
+    whitelist: approvedVideoWhitelist,
+    legacyVideoUrl: safeExercise.videoUrl || safeExercise.videoOverrideUrl || (safeExercise.video_links || [])[0] || '',
+    legacyVideoSource: safeExercise.videoSource || safeExercise.videoMode || ''
   });
   return {
     ...safeExercise,
@@ -531,6 +534,7 @@ function hydrateExercise(exercise, index) {
     instruction_source: safeExercise.instruction_source || 'generated',
     videoMode: videoAssignment.videoMode,
     videoSource: videoAssignment.videoSource,
+    videoLabel: videoAssignment.videoLabel,
     videoUrl: videoAssignment.videoUrl,
     videoOverrideUrl: videoAssignment.videoOverrideUrl,
     video_links: videoAssignment.video_links,

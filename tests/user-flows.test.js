@@ -213,6 +213,32 @@ test('summary does not include search disclaimer when there are no video links',
   assert.doesNotMatch(summary, /Search results may vary\./);
 });
 
+test('email html rendering remains stable when video mode is none', () => {
+  const html = buildEmailHtml({
+    exercises: [{
+      display_name: 'Wall Sit',
+      videoMode: 'none',
+      videoSource: 'none',
+      sets: '3',
+      reps: '',
+      duration: '30 sec',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Slide down a wall and hold with control.'],
+      video_links: [],
+      video: { message: VIDEO_MATCHING_CONFIG.fallback.message }
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(html, /Video: Video currently unavailable\./);
+  assert.doesNotMatch(html, /target="_blank"/);
+});
+
 test('preview and summary disclaimer logic share the same source-of-truth helper', () => {
   const curated = [{ videoMode: 'whitelist', videoSource: 'curated', video_links: ['https://www.youtube.com/watch?v=approved123'] }];
   const noLinks = [{ videoMode: 'none', videoSource: 'none', video_links: [] }];
