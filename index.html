@@ -56,8 +56,10 @@ bridge with band 3x12"></textarea>
           <button id="generateBtn" type="button">Generate Program</button>
           <button id="printBtn" type="button">Download / Print PDF</button>
           <button id="emailBtn" type="button">Open Email Draft</button>
-          <button id="copySummaryBtn" type="button">Copy Summary</button>
+          <button id="copyForEmailBtn" type="button" disabled>Copy for Gmail/Outlook</button>
+          <button id="copyPlainTextBtn" type="button" disabled>Copy Plain Text</button>
         </div>
+        <p id="copyStatus" class="helper copy-status" role="status" aria-live="polite"></p>
       </section>
 
       <section class="card editor-shell">

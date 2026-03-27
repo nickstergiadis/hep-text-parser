@@ -7,7 +7,7 @@ import {
 } from './src/video/matcher.js';
 import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
-import { buildDoseString, buildEmailDraftHref, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
+import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
 
 let patientNameEl;
 let recipientEmailEl;
@@ -20,7 +20,9 @@ let sampleBtn;
 let generateBtn;
 let printBtn;
 let emailBtn;
-let copySummaryBtn;
+let copyForEmailBtn;
+let copyPlainTextBtn;
+let copyStatusEl;
 
 let previewTitleEl;
 let previewPatientEl;
@@ -98,7 +100,9 @@ function cacheElements() {
   generateBtn = document.getElementById('generateBtn');
   printBtn = document.getElementById('printBtn');
   emailBtn = document.getElementById('emailBtn');
-  copySummaryBtn = document.getElementById('copySummaryBtn');
+  copyForEmailBtn = document.getElementById('copyForEmailBtn');
+  copyPlainTextBtn = document.getElementById('copyPlainTextBtn');
+  copyStatusEl = document.getElementById('copyStatus');
   previewTitleEl = document.getElementById('previewTitle');
   previewPatientEl = document.getElementById('previewPatient');
   previewDateEl = document.getElementById('previewDate');
@@ -117,7 +121,8 @@ function bindActionButtons() {
     if (ensureProgramForActions()) window.print();
   });
   emailBtn?.addEventListener('click', openEmailDraft);
-  copySummaryBtn?.addEventListener('click', copySummary);
+  copyForEmailBtn?.addEventListener('click', copyForEmailClients);
+  copyPlainTextBtn?.addEventListener('click', copyPlainText);
 }
 
 function bindFormInputs() {
@@ -319,6 +324,7 @@ function renderPreview() {
     if (dataLoadWarnings.length) {
       exerciseListEl.innerHTML += `<p class="empty">Data load notice: ${escapeHtml(dataLoadWarnings.join(', '))}. Canonical matching or approved videos may be limited.</p>`;
     }
+    updateCopyButtonsState();
     return;
   }
 
@@ -340,6 +346,7 @@ function renderPreview() {
     ? '<p class="video-disclaimer">Search results may vary. Confirm the title matches your prescribed exercise.</p>'
     : '';
   exerciseListEl.innerHTML = `${disclaimer}${cardsHtml}`;
+  updateCopyButtonsState();
 }
 
 function syncPreviewHeader() {
@@ -354,7 +361,7 @@ function ensureProgramForActions() {
   const rawText = inputTextEl.value.trim();
   if (!exercises.length || rawText !== lastParsedInputText) generateProgram();
   if (!exercises.length) {
-    alert('Add at least one exercise before printing, emailing, or copying the summary.');
+    alert('Add at least one exercise before printing, emailing, or copying.');
     return false;
   }
   return true;
@@ -369,15 +376,54 @@ function openEmailDraft() {
   window.location.href = buildEmailDraftHref({ recipient, subject, body });
 }
 
-async function copySummary() {
+function buildProgramExports() {
+  const exportExercises = exercises.map(resolveInstructionsForExercise);
+  const title = programTitleEl?.value.trim() || 'Home Exercise Program';
+  const patientName = patientNameEl?.value.trim() || 'Patient';
+  const date = formatDate(programDateEl?.value);
+  const introText = introTextEl?.value.trim() || '';
+  const fallbackMessage = VIDEO_MATCHING_CONFIG.fallback.message;
+  return {
+    plainText: buildPlainTextExport({ exercises: exportExercises, title, patientName, date, introText, fallbackMessage }),
+    emailHtml: buildEmailHtml({ exercises: exportExercises, title, patientName, date, introText, fallbackMessage })
+  };
+}
+
+async function copyForEmailClients() {
   if (!ensureProgramForActions()) return;
-  const summary = buildSummaryTextForProgram(false);
+  const { plainText, emailHtml } = buildProgramExports();
+
+  try {
+    if (!navigator?.clipboard) throw new Error('clipboard unavailable');
+    if (typeof navigator.clipboard.write === 'function' && typeof ClipboardItem !== 'undefined') {
+      const item = new ClipboardItem({
+        'text/html': new Blob([emailHtml], { type: 'text/html' }),
+        'text/plain': new Blob([plainText], { type: 'text/plain' })
+      });
+      await navigator.clipboard.write([item]);
+      setCopyStatus('Copied for Gmail/Outlook with formatting and clickable links.', 'success');
+      return;
+    }
+
+    if (!navigator.clipboard.writeText) throw new Error('clipboard unavailable');
+    await navigator.clipboard.writeText(plainText);
+    setCopyStatus('Rich copy is unavailable in this browser. Copied plain text instead.', 'warning');
+  } catch {
+    window.prompt('Clipboard unavailable. Copy your summary below:', plainText);
+    setCopyStatus('Clipboard API unavailable. Used manual copy prompt.', 'warning');
+  }
+}
+
+async function copyPlainText() {
+  if (!ensureProgramForActions()) return;
+  const { plainText } = buildProgramExports();
   try {
     if (!navigator?.clipboard?.writeText) throw new Error('clipboard unavailable');
-    await navigator.clipboard.writeText(summary);
-    alert('Program summary copied.');
+    await navigator.clipboard.writeText(plainText);
+    setCopyStatus('Plain text summary copied.', 'success');
   } catch {
-    window.prompt('Clipboard unavailable. Copy your summary below:', summary);
+    window.prompt('Clipboard unavailable. Copy your plain text summary below:', plainText);
+    setCopyStatus('Clipboard API unavailable. Used manual copy prompt.', 'warning');
   }
 }
 
@@ -387,9 +433,23 @@ function buildSummaryTextForProgram(forEmail) {
     title: programTitleEl?.value.trim() || 'Home Exercise Program',
     patientName: patientNameEl?.value.trim() || 'Patient',
     date: formatDate(programDateEl?.value),
+    introText: introTextEl?.value.trim() || '',
     fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
     forEmail
   });
+}
+
+function updateCopyButtonsState() {
+  const hasContent = exercises.length > 0;
+  if (copyForEmailBtn) copyForEmailBtn.disabled = !hasContent;
+  if (copyPlainTextBtn) copyPlainTextBtn.disabled = !hasContent;
+  if (!hasContent) setCopyStatus('', 'idle');
+}
+
+function setCopyStatus(message, tone = 'idle') {
+  if (!copyStatusEl) return;
+  copyStatusEl.textContent = message;
+  copyStatusEl.dataset.tone = tone;
 }
 
 function resolveInstructionsForExercise(exercise) {
