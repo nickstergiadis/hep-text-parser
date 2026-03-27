@@ -295,3 +295,83 @@ test('email HTML export includes clickable video links', () => {
   assert.match(html, /<a href="https:\/\/www\.youtube\.com\/watch\?v=approved123"/);
   assert.match(html, />Open link<\/a>/);
 });
+
+
+test('plain text export renders multi-section programs in order', () => {
+  const text = buildPlainTextExport({
+    sections: [
+      {
+        id: 's1',
+        label: 'Daily Mobility',
+        exercises: [{
+          display_name: 'Chin Tuck',
+          sets: '2',
+          reps: '10',
+          duration: '',
+          hold: '',
+          side: '',
+          frequency: '',
+          instructions: ['Gently retract your chin.'],
+          video_links: [],
+          video: { message: VIDEO_MATCHING_CONFIG.fallback.message }
+        }]
+      },
+      {
+        id: 's2',
+        label: 'Strength 3-4x/week',
+        exercises: [{
+          display_name: 'Band Row',
+          sets: '3',
+          reps: '12',
+          duration: '',
+          hold: '',
+          side: '',
+          frequency: '',
+          instructions: ['Pull band to your ribs.'],
+          video_links: [],
+          video: { message: VIDEO_MATCHING_CONFIG.fallback.message }
+        }]
+      }
+    ],
+    title: 'Right Shoulder Rehab',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    introText: 'Perform as directed.',
+    includeSectionHeadings: true,
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(text, /Daily Mobility:/);
+  assert.match(text, /Strength 3-4x\/week:/);
+  assert.ok(text.indexOf('Daily Mobility:') < text.indexOf('Strength 3-4x/week:'));
+});
+
+test('email html export renders section headings for combined programs', () => {
+  const html = buildEmailHtml({
+    sections: [{
+      id: 's1',
+      label: 'Daily Mobility',
+      exercises: [{
+        display_name: 'Chin Tuck',
+        sets: '2',
+        reps: '10',
+        duration: '',
+        hold: '',
+        side: '',
+        frequency: '',
+        instructions: ['Gently retract your chin.'],
+        video_links: ['https://www.youtube.com/watch?v=approved123'],
+        video: null
+      }]
+    }],
+    includeSectionHeadings: true,
+    title: 'Right Shoulder Rehab',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    introText: '',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(html, /<strong>Daily Mobility<\/strong>/);
+  assert.match(html, /<strong>1\. Chin Tuck<\/strong>/);
+});
