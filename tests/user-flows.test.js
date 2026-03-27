@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { matchExerciseToCanonical, resolveWhitelistedVideo, buildFallbackVideo } from '../src/video/matcher.js';
 import { VIDEO_MATCHING_CONFIG } from '../src/video/config.js';
-import { buildDoseString, buildEmailDraftHref, buildSummaryText, shouldShowSearchVideoDisclaimer } from '../src/app/output.js';
+import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from '../src/app/output.js';
 
 const exercises = JSON.parse(fs.readFileSync(new URL('../data/exercises_master.json', import.meta.url), 'utf8'));
 const whitelist = JSON.parse(fs.readFileSync(new URL('../data/video_whitelist.json', import.meta.url), 'utf8'));
@@ -243,4 +243,55 @@ test('email draft generation produces a safe mailto URL', () => {
 
   assert.match(href, /^mailto:patient%40example\.com\?subject=/);
   assert.ok(href.includes('body='));
+});
+
+test('plain text export includes full video URLs and no HTML tags', () => {
+  const text = buildPlainTextExport({
+    exercises: [{
+      display_name: 'Bridge',
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Lift your hips, then lower with control.'],
+      video_links: ['https://www.youtube.com/watch?v=approved123'],
+      video: null
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    introText: 'Perform as directed.',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(text, /Perform as directed\./);
+  assert.match(text, /Video: https:\/\/www\.youtube\.com\/watch\?v=approved123/);
+  assert.doesNotMatch(text, /<a href=/);
+});
+
+test('email HTML export includes clickable video links', () => {
+  const html = buildEmailHtml({
+    exercises: [{
+      display_name: 'Bridge',
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: 'daily',
+      instructions: ['Lift your hips, then lower with control.'],
+      video_links: ['https://www.youtube.com/watch?v=approved123'],
+      video: null
+    }],
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    introText: 'Perform as directed.',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(html, /<a href="https:\/\/www\.youtube\.com\/watch\?v=approved123"/);
+  assert.match(html, />Open link<\/a>/);
 });

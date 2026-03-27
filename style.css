@@ -128,6 +128,24 @@ button {
 }
 
 button:hover { opacity: 0.95; }
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.copy-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.copy-status[data-tone="success"] {
+  color: #065f46;
+}
+
+.copy-status[data-tone="warning"] {
+  color: #92400e;
+}
 
 #editorList,
 .exercise-list {
