@@ -76,13 +76,13 @@ test('alias normalization converts shorthand exercise names into canonical label
   assert.equal(normalizeExerciseName('chin tuck'), 'Chin Tuck');
 });
 
-test('youtube search URL builder uses canonical query pattern', () => {
+test('youtube search URL builder uses concise canonical query pattern', () => {
   const query = buildYoutubeSearchQuery('Sidelying Clamshell');
   const url = buildYoutubeSearchUrl('Sidelying Clamshell');
-  assert.equal(query, 'Sidelying Clamshell exercise physiotherapy instructions');
+  assert.equal(query, 'Sidelying Clamshell exercise');
   assert.equal(
     url,
-    'https://www.youtube.com/results?search_query=Sidelying%20Clamshell%20exercise%20physiotherapy%20instructions'
+    'https://www.youtube.com/results?search_query=Sidelying%20Clamshell%20exercise'
   );
 });
 
