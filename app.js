@@ -9,6 +9,7 @@ import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
 import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
 import { parseProgramInput } from './src/app/parser.js';
+import { initTheme } from './src/app/theme.js';
 
 let patientNameEl;
 let recipientEmailEl;
@@ -31,6 +32,7 @@ let previewDateEl;
 let previewIntroEl;
 let exerciseListEl;
 let editorListEl;
+let themeModeEl;
 
 let exercises = [];
 let programSections = [];
@@ -53,6 +55,7 @@ async function initializeApp() {
   await loadVideoMatchingData();
   setDefaultDate();
   restoreDraftState();
+  initThemeControl();
   renderEditors();
   renderPreview();
   bindActionButtons();
@@ -112,6 +115,12 @@ function cacheElements() {
   previewIntroEl = document.getElementById('previewIntro');
   exerciseListEl = document.getElementById('exerciseList');
   editorListEl = document.getElementById('editorList');
+  themeModeEl = document.getElementById('themeMode');
+}
+
+
+function initThemeControl() {
+  initTheme({ controlElement: themeModeEl });
 }
 
 function bindActionButtons() {
