@@ -1,21 +1,7 @@
 import { resolveExerciseInstructions } from './instructions.js';
-const SEARCH_RESULTS_DISCLAIMER = 'Search results may vary. Confirm the title matches your prescribed exercise.';
-
-function isSearchLink(url) {
-  const value = String(url || '').trim().toLowerCase();
-  return value.startsWith('https://www.youtube.com/results?search_query=')
-    || value.startsWith('http://www.youtube.com/results?search_query=');
-}
-
-function isSearchVideoExercise(exercise) {
-  const source = String(exercise?.videoSource || '').trim().toLowerCase();
-  if (source) return source === 'search';
-
-  return (exercise?.video_links || []).some(isSearchLink);
-}
 
 export function shouldShowSearchVideoDisclaimer(exercises = []) {
-  return exercises.some(isSearchVideoExercise);
+  return false;
 }
 
 export function buildDoseString(exercise) {
@@ -80,16 +66,12 @@ function buildProgramExportModel({ exercises = [], sections = [], title, patient
     })
     .filter(section => section.exercises.length);
 
-  const rawExercisesForDisclaimer = Array.isArray(sections) && sections.length
-    ? sections.flatMap(section => Array.isArray(section.exercises) ? section.exercises : [])
-    : exercises;
-
   return {
     title: title || 'Home Exercise Program',
     patientName: patientName || 'Patient',
     date: date || '—',
     introText: String(introText || '').trim(),
-    hasSearchVideoLinks: shouldShowSearchVideoDisclaimer(rawExercisesForDisclaimer),
+    hasSearchVideoLinks: false,
     includeSectionHeadings: Boolean(includeSectionHeadings),
     sections: resolvedSections
   };
@@ -110,10 +92,6 @@ export function buildSummaryText({ exercises = [], sections = [], title, patient
   const lines = [program.title, `Patient: ${program.patientName}`, `Date: ${program.date}`];
   if (introText) lines.push('', String(introText).trim());
   lines.push('', 'Exercises:');
-
-  if (program.hasSearchVideoLinks) {
-    lines.push(SEARCH_RESULTS_DISCLAIMER, '');
-  }
 
   const shouldShowSections = program.includeSectionHeadings || program.sections.length > 1;
 
@@ -150,10 +128,6 @@ export function buildEmailHtml({ exercises = [], sections = [], title, patientNa
     includeSectionHeadings
   });
 
-  const disclaimerHtml = program.hasSearchVideoLinks
-    ? `<p style="margin:0 0 12px 0;font-size:13px;color:#4b5563;">${escapeHtml(SEARCH_RESULTS_DISCLAIMER)}</p>`
-    : '';
-
   const introHtml = program.introText
     ? `<p style="margin:0 0 12px 0;">${escapeHtml(program.introText)}</p>`
     : '';
@@ -185,7 +159,7 @@ export function buildEmailHtml({ exercises = [], sections = [], title, patientNa
     return `<section style="margin:0 0 14px 0;">${sectionHeading}<ul style="margin:0 0 0 18px;padding:0;">${exerciseItems}</ul></section>`;
   }).join('');
 
-  return `<div><p style="margin:0 0 8px 0;"><strong>${escapeHtml(program.title)}</strong></p><p style="margin:0;">Patient: ${escapeHtml(program.patientName)}</p><p style="margin:0 0 12px 0;">Date: ${escapeHtml(program.date)}</p>${introHtml}${disclaimerHtml}<p style="margin:0 0 8px 0;"><strong>Exercises</strong></p>${sectionBlocks}</div>`;
+  return `<div><p style="margin:0 0 8px 0;"><strong>${escapeHtml(program.title)}</strong></p><p style="margin:0;">Patient: ${escapeHtml(program.patientName)}</p><p style="margin:0 0 12px 0;">Date: ${escapeHtml(program.date)}</p>${introHtml}<p style="margin:0 0 8px 0;"><strong>Exercises</strong></p>${sectionBlocks}</div>`;
 }
 
 export function buildEmailDraftHref({ recipient, subject, body }) {

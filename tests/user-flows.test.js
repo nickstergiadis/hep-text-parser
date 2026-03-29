@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import { matchExerciseToCanonical, resolveWhitelistedVideo, buildFallbackVideo } from '../src/video/matcher.js';
 import { VIDEO_MATCHING_CONFIG } from '../src/video/config.js';
 import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from '../src/app/output.js';
+import { resolveExerciseVideoAssignment } from '../src/app/exercise-video.js';
+import { parseProgramInput } from '../src/app/parser.js';
 
 const exercises = JSON.parse(fs.readFileSync(new URL('../data/exercises_master.json', import.meta.url), 'utf8'));
 const whitelist = JSON.parse(fs.readFileSync(new URL('../data/video_whitelist.json', import.meta.url), 'utf8'));
@@ -27,6 +29,43 @@ test('sample load lines map to canonical exercises', () => {
     mapped.map(row => row.canonical?.exercise_id),
     ['bridge', 'sls', 'clamshell', 'calf_stretch', 'wall_sit']
   );
+});
+
+test('smoke: parse -> video assignment -> export remains whitelist-only and deterministic', () => {
+  const parsed = parseProgramInput('bridge 3x12\nwall sit 3x30 sec');
+  const built = parsed.sections[0].lines.map((line) => {
+    const matched = matchExerciseToCanonical(line, exercises);
+    const assignment = resolveExerciseVideoAssignment({
+      canonicalExerciseId: matched.canonical?.exercise_id || null,
+      exerciseName: matched.canonical?.canonical_name || line,
+      whitelist
+    });
+    return {
+      display_name: matched.canonical?.canonical_name || line,
+      sets: '3',
+      reps: '10',
+      duration: '',
+      hold: '',
+      side: '',
+      frequency: '',
+      instructions: ['Perform as prescribed.'],
+      videoMode: assignment.videoMode,
+      videoSource: assignment.videoSource,
+      video_links: assignment.video_links,
+      video: assignment.video
+    };
+  });
+
+  const text = buildPlainTextExport({
+    exercises: built,
+    title: 'Home Exercise Program',
+    patientName: 'Sample Patient',
+    date: '2026-03-20',
+    fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message
+  });
+
+  assert.match(text, /Video currently unavailable\./);
+  assert.doesNotMatch(text, /Search results may vary\./);
 });
 
 test('canonical alias shorthand maps correctly', () => {
@@ -97,7 +136,7 @@ test('summary output upgrades weak generated instructions via templates', () => 
   assert.doesNotMatch(summary, /Hold partial squat against wall/i);
 });
 
-test('summary includes search disclaimer exactly once when search video links are present', () => {
+test('summary never includes search disclaimer in whitelist-only runtime', () => {
   const summary = buildSummaryText({
     exercises: [{
       display_name: 'Bridge',
@@ -131,8 +170,7 @@ test('summary includes search disclaimer exactly once when search video links ar
     forEmail: false
   });
 
-  const matches = summary.match(/Search results may vary\./g) || [];
-  assert.equal(matches.length, 1);
+  assert.doesNotMatch(summary, /Search results may vary\./);
 });
 
 test('summary does not include search disclaimer for curated whitelist links', () => {
@@ -239,7 +277,7 @@ test('email html rendering remains stable when video mode is none', () => {
   assert.doesNotMatch(html, /target="_blank"/);
 });
 
-test('preview and summary disclaimer logic share the same source-of-truth helper', () => {
+test('search disclaimer helper remains disabled for whitelist-only runtime', () => {
   const curated = [{ videoMode: 'whitelist', videoSource: 'curated', video_links: ['https://www.youtube.com/watch?v=approved123'] }];
   const noLinks = [{ videoMode: 'none', videoSource: 'none', video_links: [] }];
   const search = [{ videoMode: 'none', videoSource: 'search', video_links: ['https://www.youtube.com/results?search_query=bridge+exercise'] }];
@@ -247,8 +285,8 @@ test('preview and summary disclaimer logic share the same source-of-truth helper
 
   assert.equal(shouldShowSearchVideoDisclaimer(curated), false);
   assert.equal(shouldShowSearchVideoDisclaimer(noLinks), false);
-  assert.equal(shouldShowSearchVideoDisclaimer(search), true);
-  assert.equal(shouldShowSearchVideoDisclaimer(legacySearchLinksWithoutSource), true);
+  assert.equal(shouldShowSearchVideoDisclaimer(search), false);
+  assert.equal(shouldShowSearchVideoDisclaimer(legacySearchLinksWithoutSource), false);
 });
 
 test('email draft generation produces a safe mailto URL', () => {
