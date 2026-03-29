@@ -216,6 +216,12 @@ a:focus-visible {
   color: var(--warning);
 }
 
+.data-load-notice {
+  margin: 0 0 12px;
+  color: var(--warning);
+  font-weight: 700;
+}
+
 #editorList,
 .exercise-list {
   display: grid;

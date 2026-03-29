@@ -9,7 +9,7 @@ HEP Builder Pro is a deterministic, static web app for converting clinician shor
 - **Approved runtime video model:** `data/video_whitelist.json` only.
 - **Matching logic:** `src/video/`.
 - **Program output helpers:** `src/app/output.js`.
-- **`upload-ready/`:** generated mirror of production runtime files, refreshed via `npm run sync:upload-ready`.
+- **`upload-ready/`:** optional generated mirror for manual/static handoff workflows only; **not** the GitHub Pages deploy source.
 
 ## Video policy
 
@@ -33,7 +33,8 @@ Single deploy path: **GitHub Actions workflow** at `.github/workflows/deploy-pag
 
 - Triggered on push to `main` or manually.
 - Runs `npm run check` before deploying.
-- Publishes repo root as static Pages artifact.
+- Publishes repo root (`path: .`) as the single static Pages artifact source.
+- Does **not** depend on `upload-ready/`.
 
 ## Production readiness checklist
 

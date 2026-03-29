@@ -20,18 +20,18 @@ test('approved whitelist videos are used directly', () => {
   assert.match(result.video_links[0], /^https:\/\/www\.youtube\.com\/watch\?/);
 });
 
-test('missing whitelist entries fall back to search link for useful exercise names', () => {
+test('missing whitelist entries use deterministic fallback with no search link', () => {
   const result = resolveExerciseVideoAssignment({
     canonicalExerciseId: 'wall_sit',
     exerciseName: 'Wall Sit',
     whitelist
   });
 
-  assert.equal(result.videoMode, 'search');
-  assert.equal(result.videoSource, 'search');
-  assert.equal(result.videoLabel, 'Video search');
-  assert.equal(result.video_links.length, 1);
-  assert.equal(result.video_links[0], 'https://www.youtube.com/results?search_query=Wall%20Sit%20exercise');
+  assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
+  assert.equal(result.videoLabel, '');
+  assert.equal(result.video_links.length, 0);
+  assert.equal(result.video.message, VIDEO_MATCHING_CONFIG.fallback.message);
 });
 
 test('invalid whitelist urls are rejected for safety', () => {
@@ -46,9 +46,9 @@ test('invalid whitelist urls are rejected for safety', () => {
     }]
   });
 
-  assert.equal(result.videoMode, 'search');
-  assert.equal(result.videoSource, 'search');
-  assert.equal(result.video_links.length, 1);
+  assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
+  assert.equal(result.video_links.length, 0);
 });
 
 test('returns no link when exercise name is too vague for a useful search', () => {
@@ -64,7 +64,7 @@ test('returns no link when exercise name is too vague for a useful search', () =
   assert.equal(result.video.message, VIDEO_MATCHING_CONFIG.fallback.message);
 });
 
-test('legacy non-curated direct links are migrated to search mode', () => {
+test('legacy non-curated direct links are migrated to fallback mode', () => {
   const result = resolveExerciseVideoAssignment({
     canonicalExerciseId: null,
     exerciseName: 'Bird Dog',
@@ -73,7 +73,22 @@ test('legacy non-curated direct links are migrated to search mode', () => {
     legacyVideoSource: 'generated'
   });
 
-  assert.equal(result.videoMode, 'search');
-  assert.equal(result.videoSource, 'search');
-  assert.equal(result.video_links[0], 'https://www.youtube.com/results?search_query=Bird%20Dog%20exercise');
+  assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
+  assert.equal(result.video_links.length, 0);
+});
+
+test('legacy search mode payloads are normalized to fallback mode', () => {
+  const result = resolveExerciseVideoAssignment({
+    canonicalExerciseId: null,
+    exerciseName: 'Bridge',
+    whitelist: [],
+    legacyVideoUrl: 'https://www.youtube.com/results?search_query=bridge+exercise',
+    legacyVideoSource: 'search'
+  });
+
+  assert.equal(result.videoMode, 'none');
+  assert.equal(result.videoSource, 'none');
+  assert.equal(result.video_links.length, 0);
+  assert.equal(result.video.message, VIDEO_MATCHING_CONFIG.fallback.message);
 });

@@ -12,8 +12,11 @@ const RUNTIME_FILES = [
   'data/video_whitelist.json',
   'src/video/config.js',
   'src/video/matcher.js',
+  'src/app/exercise-video.js',
+  'src/app/parser.js',
   'src/app/output.js',
   'src/app/instructions.js',
+  'src/app/instruction-templates.js',
   'src/app/theme.js'
 ];
 

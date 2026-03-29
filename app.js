@@ -7,7 +7,7 @@ import {
 } from './src/video/matcher.js';
 import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
-import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
+import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText } from './src/app/output.js';
 import { parseProgramInput } from './src/app/parser.js';
 import { initTheme } from './src/app/theme.js';
 
@@ -25,6 +25,7 @@ let emailBtn;
 let copyForEmailBtn;
 let copyPlainTextBtn;
 let copyStatusEl;
+let dataLoadNoticeEl;
 
 let previewTitleEl;
 let previewPatientEl;
@@ -93,6 +94,7 @@ async function loadVideoMatchingData() {
   if (dataLoadWarnings.length) {
     console.warn(`HEP Builder Pro data load warning: ${dataLoadWarnings.join(', ')}`);
   }
+  renderDataLoadNotice();
 }
 
 function cacheElements() {
@@ -109,6 +111,7 @@ function cacheElements() {
   copyForEmailBtn = document.getElementById('copyForEmailBtn');
   copyPlainTextBtn = document.getElementById('copyPlainTextBtn');
   copyStatusEl = document.getElementById('copyStatus');
+  dataLoadNoticeEl = document.getElementById('dataLoadNotice');
   previewTitleEl = document.getElementById('previewTitle');
   previewPatientEl = document.getElementById('previewPatient');
   previewDateEl = document.getElementById('previewDate');
@@ -356,17 +359,14 @@ function handleEditorChange(event) {
 function renderPreview() {
   if (!exerciseListEl) return;
   syncPreviewHeader();
+  renderDataLoadNotice();
 
   if (!exercises.length) {
     exerciseListEl.innerHTML = '<p class="empty">Generate a program to see the patient-ready preview.</p>';
-    if (dataLoadWarnings.length) {
-      exerciseListEl.innerHTML += `<p class="empty">Data load notice: ${escapeHtml(dataLoadWarnings.join(', '))}. Canonical matching or approved videos may be limited.</p>`;
-    }
     updateCopyButtonsState();
     return;
   }
 
-  const showVideoSearchDisclaimer = shouldShowSearchVideoDisclaimer(exercises);
   const sectionsForPreview = buildSectionsForOutput();
   const showSectionHeaders = hasExplicitSections || sectionsForPreview.length > 1;
   const cardsHtml = sectionsForPreview.map((section, sectionIndex) => {
@@ -379,7 +379,7 @@ function renderPreview() {
       const dose = buildDoseString(exercise);
       const instructions = `<ol class="instructions-list">${resolvedExercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
       const safeVideoUrl = String(exercise.videoUrl || '').trim();
-      const videoLabel = exercise.videoMode === 'search' ? 'Video search' : (exercise.videoLabel || 'Watch video');
+      const videoLabel = exercise.videoLabel || 'Watch video';
       const videoSection = safeVideoUrl
         ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoLabel)}</a></li></ul></div>`
         : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
@@ -390,11 +390,20 @@ function renderPreview() {
     return `<section class="preview-section">${sectionHeading}${sectionCards}</section>`;
   }).join('');
 
-  const disclaimer = showVideoSearchDisclaimer
-    ? '<p class="video-disclaimer">Search results may vary. Confirm the title matches your prescribed exercise.</p>'
-    : '';
-  exerciseListEl.innerHTML = `${disclaimer}${cardsHtml}`;
+  exerciseListEl.innerHTML = cardsHtml;
   updateCopyButtonsState();
+}
+
+function renderDataLoadNotice() {
+  if (!dataLoadNoticeEl) return;
+  if (!dataLoadWarnings.length) {
+    dataLoadNoticeEl.hidden = true;
+    dataLoadNoticeEl.textContent = '';
+    return;
+  }
+
+  dataLoadNoticeEl.hidden = false;
+  dataLoadNoticeEl.textContent = 'Some reference data could not be loaded. You can still build and edit your program, but exercise matching or videos may be limited.';
 }
 
 function syncPreviewHeader() {
