@@ -13,7 +13,8 @@ const RUNTIME_FILES = [
   'src/video/config.js',
   'src/video/matcher.js',
   'src/app/output.js',
-  'src/app/instructions.js'
+  'src/app/instructions.js',
+  'src/app/theme.js'
 ];
 
 for (const relPath of RUNTIME_FILES) {

@@ -101,6 +101,13 @@ body {
   align-items: flex-start;
 }
 
+.toolbar-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 14px;
+}
+
+
 .theme-controls {
   display: grid;
   gap: 6px;
@@ -365,6 +372,9 @@ a:focus-visible {
   .exercise-top,
   .editor-header {
     flex-direction: column;
+  }
+  .toolbar-row {
+    justify-content: flex-start;
   }
   .exercise-dose { white-space: normal; }
 }
