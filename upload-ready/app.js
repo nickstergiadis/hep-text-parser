@@ -8,6 +8,8 @@ import {
 import { resolveExerciseVideoAssignment } from './src/app/exercise-video.js';
 import { resolveExerciseInstructions } from './src/app/instructions.js';
 import { buildDoseString, buildEmailDraftHref, buildEmailHtml, buildPlainTextExport, buildSummaryText, shouldShowSearchVideoDisclaimer } from './src/app/output.js';
+import { parseProgramInput } from './src/app/parser.js';
+import { initTheme } from './src/app/theme.js';
 
 let patientNameEl;
 let recipientEmailEl;
@@ -30,8 +32,11 @@ let previewDateEl;
 let previewIntroEl;
 let exerciseListEl;
 let editorListEl;
+let themeModeEl;
 
 let exercises = [];
+let programSections = [];
+let hasExplicitSections = false;
 let lastParsedInputText = '';
 let canonicalExerciseLibrary = [];
 let approvedVideoWhitelist = [];
@@ -50,6 +55,7 @@ async function initializeApp() {
   await loadVideoMatchingData();
   setDefaultDate();
   restoreDraftState();
+  initThemeControl();
   renderEditors();
   renderPreview();
   bindActionButtons();
@@ -109,6 +115,12 @@ function cacheElements() {
   previewIntroEl = document.getElementById('previewIntro');
   exerciseListEl = document.getElementById('exerciseList');
   editorListEl = document.getElementById('editorList');
+  themeModeEl = document.getElementById('themeMode');
+}
+
+
+function initThemeControl() {
+  initTheme({ controlElement: themeModeEl });
 }
 
 function bindActionButtons() {
@@ -164,6 +176,8 @@ function generateProgram() {
   syncPreviewHeader();
   if (!rawText) {
     exercises = [];
+    programSections = [];
+    hasExplicitSections = false;
     lastParsedInputText = '';
     renderEditors();
     renderPreview();
@@ -171,25 +185,44 @@ function generateProgram() {
     return;
   }
 
-  exercises = parseRoughInput(rawText);
+  const parsedProgram = parseProgramInput(rawText);
+  const frequency = parsedProgram.frequencyLine || '';
+  hasExplicitSections = Boolean(parsedProgram.hasExplicitSections);
+
+  if (parsedProgram.title && programTitleEl) programTitleEl.value = parsedProgram.title;
+
+  let exerciseIndex = 0;
+  programSections = parsedProgram.sections.map((section, sectionIndex) => {
+    const sectionId = `section-${sectionIndex}-${Date.now()}`;
+    const sectionExercises = section.lines
+      .filter(line => /[a-z0-9]/i.test(line))
+      .map((line) => buildExerciseObject(line, frequency, exerciseIndex++, {
+        id: sectionId,
+        name: section.name || 'Exercises',
+        rawLabel: section.rawLabel || section.name || 'Exercises',
+        frequencyLabel: section.frequencyLabel || '',
+        order: section.order ?? sectionIndex
+      }));
+
+    return {
+      id: sectionId,
+      name: section.name || 'Exercises',
+      rawLabel: section.rawLabel || section.name || 'Exercises',
+      frequencyLabel: section.frequencyLabel || '',
+      notes: '',
+      order: section.order ?? sectionIndex,
+      exercises: sectionExercises
+    };
+  }).filter(section => section.exercises.length);
+
+  exercises = flattenSections(programSections);
   lastParsedInputText = rawText;
   renderEditors();
   renderPreview();
   persistDraftState();
 }
 
-function parseRoughInput(text) {
-  const lines = splitInputLines(text);
-  const frequencyLine = lines.find(line => /^frequency:/i.test(line));
-  const frequency = frequencyLine ? frequencyLine.replace(/^frequency:/i, '').trim() : '';
-
-  return lines
-    .filter(line => !/^frequency:/i.test(line))
-    .filter(line => /[a-z0-9]/i.test(line))
-    .map((line, index) => buildExerciseObject(line, frequency, index));
-}
-
-function buildExerciseObject(line, frequency, index) {
+function buildExerciseObject(line, frequency, index, sectionMeta = {}) {
   const normalizedLine = line.toLowerCase();
   const setsDurationMatch = normalizedLine.match(new RegExp(`(\\d+)\\s*x\\s*(\\d+)\\s*${TIME_UNIT_PATTERN}\\b`, 'i'));
   const setsRepsMatch = normalizedLine.match(/(\d+)\s*x\s*(\d+)/i);
@@ -260,6 +293,11 @@ function buildExerciseObject(line, frequency, index) {
     instructions: resolvedInstructions.instructions,
     instruction_source: resolvedInstructions.instructionSource,
     notes,
+    section_id: sectionMeta.id || 'section-0',
+    section_name: sectionMeta.name || 'Exercises',
+    section_label: sectionMeta.rawLabel || sectionMeta.name || 'Exercises',
+    section_frequency_label: sectionMeta.frequencyLabel || '',
+    section_order: Number.isInteger(sectionMeta.order) ? sectionMeta.order : 0,
     videoMode: videoAssignment.videoMode,
     videoSource: videoAssignment.videoSource,
     videoLabel: videoAssignment.videoLabel,
@@ -280,6 +318,7 @@ function renderEditors() {
   editorListEl.innerHTML = exercises.map((exercise, index) => `
     <article class="editor-card" data-id="${exercise.id}">
       <h3>${index + 1}. ${escapeHtml(exercise.display_name)}</h3>
+      <p class="editor-section-label">${escapeHtml(exercise.section_label || exercise.section_name || 'Exercises')}</p>
       <div class="field-block"><label class="small-label">Exercise name</label><input data-field="display_name" value="${escapeAttribute(exercise.display_name)}" /></div>
       <div class="grid three-col field-block">
         <div><label class="small-label">Sets</label><input data-field="sets" value="${escapeAttribute(exercise.sets)}" /></div>
@@ -328,18 +367,27 @@ function renderPreview() {
   }
 
   const showVideoSearchDisclaimer = shouldShowSearchVideoDisclaimer(exercises);
-  const cardsHtml = exercises.map((exercise, index) => {
-    const resolvedExercise = resolveInstructionsForExercise(exercise);
-    const dose = buildDoseString(exercise);
-    const instructions = `<ol class="instructions-list">${resolvedExercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
-    const safeVideoUrl = String(exercise.videoUrl || '').trim();
-    const videoLabel = exercise.videoMode === 'search' ? 'Video search' : (exercise.videoLabel || 'Watch video');
-    const videoSection = safeVideoUrl
-      ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoLabel)}</a></li></ul></div>`
-      : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
-    const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : '';
+  const sectionsForPreview = buildSectionsForOutput();
+  const showSectionHeaders = hasExplicitSections || sectionsForPreview.length > 1;
+  const cardsHtml = sectionsForPreview.map((section, sectionIndex) => {
+    const sectionHeading = showSectionHeaders
+      ? `<div class="preview-section-header"><h3>${escapeHtml(section.label)}</h3></div>`
+      : '';
 
-    return `<article class="exercise-card"><div class="exercise-top"><p class="exercise-name">${index + 1}. ${escapeHtml(exercise.display_name)}</p><div class="exercise-dose">${escapeHtml(dose)}</div></div>${instructions}${videoSection}${notes}</article>`;
+    const sectionCards = section.exercises.map((exercise, index) => {
+      const resolvedExercise = resolveInstructionsForExercise(exercise);
+      const dose = buildDoseString(exercise);
+      const instructions = `<ol class="instructions-list">${resolvedExercise.instructions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
+      const safeVideoUrl = String(exercise.videoUrl || '').trim();
+      const videoLabel = exercise.videoMode === 'search' ? 'Video search' : (exercise.videoLabel || 'Watch video');
+      const videoSection = safeVideoUrl
+        ? `<div class="video-links"><strong>Instructional videos:</strong><ul><li><a href="${escapeAttribute(safeVideoUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(videoLabel)}</a></li></ul></div>`
+        : `<div class="video-links"><strong>Instructional videos:</strong> ${escapeHtml(exercise.video?.message || VIDEO_MATCHING_CONFIG.fallback.message)}</div>`;
+      const notes = exercise.notes ? `<div class="note-box"><strong>Notes:</strong> ${escapeHtml(exercise.notes)}</div>` : '';
+      return `<article class="exercise-card"><div class="exercise-top"><p class="exercise-name">${index + 1}. ${escapeHtml(exercise.display_name)}</p><div class="exercise-dose">${escapeHtml(dose)}</div></div>${instructions}${videoSection}${notes}</article>`;
+    }).join('');
+
+    return `<section class="preview-section">${sectionHeading}${sectionCards}</section>`;
   }).join('');
 
   const disclaimer = showVideoSearchDisclaimer
@@ -377,15 +425,18 @@ function openEmailDraft() {
 }
 
 function buildProgramExports() {
-  const exportExercises = exercises.map(resolveInstructionsForExercise);
+  const exportSections = buildSectionsForOutput().map(section => ({
+    ...section,
+    exercises: section.exercises.map(resolveInstructionsForExercise)
+  }));
   const title = programTitleEl?.value.trim() || 'Home Exercise Program';
   const patientName = patientNameEl?.value.trim() || 'Patient';
   const date = formatDate(programDateEl?.value);
   const introText = introTextEl?.value.trim() || '';
   const fallbackMessage = VIDEO_MATCHING_CONFIG.fallback.message;
   return {
-    plainText: buildPlainTextExport({ exercises: exportExercises, title, patientName, date, introText, fallbackMessage }),
-    emailHtml: buildEmailHtml({ exercises: exportExercises, title, patientName, date, introText, fallbackMessage })
+    plainText: buildPlainTextExport({ sections: exportSections, title, patientName, date, introText, fallbackMessage, includeSectionHeadings: hasExplicitSections || exportSections.length > 1 }),
+    emailHtml: buildEmailHtml({ sections: exportSections, title, patientName, date, introText, fallbackMessage, includeSectionHeadings: hasExplicitSections || exportSections.length > 1 })
   };
 }
 
@@ -428,13 +479,19 @@ async function copyPlainText() {
 }
 
 function buildSummaryTextForProgram(forEmail) {
+  const exportSections = buildSectionsForOutput().map(section => ({
+    ...section,
+    exercises: section.exercises.map(resolveInstructionsForExercise)
+  }));
+
   return buildSummaryText({
-    exercises: exercises.map(resolveInstructionsForExercise),
+    sections: exportSections,
     title: programTitleEl?.value.trim() || 'Home Exercise Program',
     patientName: patientNameEl?.value.trim() || 'Patient',
     date: formatDate(programDateEl?.value),
     introText: introTextEl?.value.trim() || '',
     fallbackMessage: VIDEO_MATCHING_CONFIG.fallback.message,
+    includeSectionHeadings: hasExplicitSections || exportSections.length > 1,
     forEmail
   });
 }
@@ -481,6 +538,14 @@ function persistDraftState() {
       introText: introTextEl?.value || '',
       inputText: inputTextEl?.value || '',
       lastParsedInputText,
+      hasExplicitSections,
+      programSections: programSections.map(section => ({
+        ...section,
+        exercises: section.exercises.map(exercise => ({
+          ...exercise,
+          instructions: Array.isArray(exercise.instructions) ? [...exercise.instructions] : []
+        }))
+      })),
       exercises: exercises.map(exercise => ({
         ...exercise,
         instructions: Array.isArray(exercise.instructions) ? [...exercise.instructions] : []
@@ -506,11 +571,33 @@ function restoreDraftState() {
     if (introTextEl && typeof payload.introText === 'string') introTextEl.value = payload.introText;
     if (inputTextEl && typeof payload.inputText === 'string') inputTextEl.value = payload.inputText;
     if (typeof payload.lastParsedInputText === 'string') lastParsedInputText = payload.lastParsedInputText;
+    hasExplicitSections = Boolean(payload.hasExplicitSections);
+    if (Array.isArray(payload.programSections) && payload.programSections.length) {
+      programSections = payload.programSections.map((section, sectionIndex) => ({
+        id: section?.id || `restored-section-${sectionIndex}-${Date.now()}`,
+        name: section?.name || 'Exercises',
+        rawLabel: section?.rawLabel || section?.name || 'Exercises',
+        frequencyLabel: section?.frequencyLabel || '',
+        notes: section?.notes || '',
+        order: Number.isInteger(section?.order) ? section.order : sectionIndex,
+        exercises: Array.isArray(section?.exercises)
+          ? section.exercises.map((exercise, exerciseIndex) => hydrateExercise(exercise, exerciseIndex))
+          : []
+      })).filter(section => section.exercises.length);
+      exercises = flattenSections(programSections);
+      return;
+    }
+
     if (Array.isArray(payload.exercises)) {
       exercises = payload.exercises.map((exercise, index) => hydrateExercise(exercise, index));
+      programSections = exercises.length
+        ? [{ id: 'section-0', name: 'Exercises', rawLabel: 'Exercises', frequencyLabel: '', notes: '', order: 0, exercises }]
+        : [];
     }
   } catch {
     exercises = [];
+    programSections = [];
+    hasExplicitSections = false;
     lastParsedInputText = '';
   }
 }
@@ -530,6 +617,11 @@ function hydrateExercise(exercise, index) {
     id: safeExercise.id || `restored-${index}-${Date.now()}`,
     canonical_exercise_id: canonicalExerciseId,
     display_name: safeExercise.display_name || safeExercise.name || 'Exercise',
+    section_id: safeExercise.section_id || 'section-0',
+    section_name: safeExercise.section_name || 'Exercises',
+    section_label: safeExercise.section_label || safeExercise.section_name || 'Exercises',
+    section_frequency_label: safeExercise.section_frequency_label || '',
+    section_order: Number.isInteger(safeExercise.section_order) ? safeExercise.section_order : 0,
     instructions: Array.isArray(safeExercise.instructions) ? splitInputLines(safeExercise.instructions.join('\n')) : [],
     instruction_source: safeExercise.instruction_source || 'generated',
     videoMode: videoAssignment.videoMode,
@@ -540,6 +632,37 @@ function hydrateExercise(exercise, index) {
     video_links: videoAssignment.video_links,
     video: videoAssignment.video
   };
+}
+
+
+function flattenSections(sections = []) {
+  return sections.flatMap(section => section.exercises || []);
+}
+
+function buildSectionsForOutput() {
+  if (Array.isArray(programSections) && programSections.length) {
+    return [...programSections]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map(section => ({
+        ...section,
+        label: section.frequencyLabel ? `${section.name} ${section.frequencyLabel}` : section.rawLabel || section.name || 'Exercises',
+        exercises: (section.exercises || []).slice()
+      }))
+      .filter(section => section.exercises.length);
+  }
+
+  if (!exercises.length) return [];
+
+  return [{
+    id: 'section-0',
+    name: 'Exercises',
+    rawLabel: 'Exercises',
+    frequencyLabel: '',
+    notes: '',
+    order: 0,
+    label: 'Exercises',
+    exercises: exercises.slice()
+  }];
 }
 
 function genericInstructions(name) {

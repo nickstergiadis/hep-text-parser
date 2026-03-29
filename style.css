@@ -1,12 +1,43 @@
 :root {
   --bg: #f3f4f6;
-  --card: #ffffff;
+  --surface: #ffffff;
+  --surface-alt: #f9fafb;
   --text: #1f2937;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --soft: #f9fafb;
-  --btn: #111827;
-  --accent: #dbeafe;
+  --text-muted: #6b7280;
+  --border: #d5d9e1;
+  --border-strong: #c2c9d4;
+  --shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+  --primary: #111827;
+  --primary-foreground: #ffffff;
+  --primary-hover: #1f2937;
+  --input-bg: #ffffff;
+  --link: #1d4ed8;
+  --focus-ring: #2563eb;
+  --accent-surface: #eef2ff;
+  --accent-text: #4338ca;
+  --success: #065f46;
+  --warning: #92400e;
+}
+
+:root[data-theme="dark"] {
+  --bg: #111827;
+  --surface: #1f2937;
+  --surface-alt: #273449;
+  --text: #e5e7eb;
+  --text-muted: #a3aec2;
+  --border: #3b475e;
+  --border-strong: #53617a;
+  --shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
+  --primary: #dbeafe;
+  --primary-foreground: #0f172a;
+  --primary-hover: #bfdbfe;
+  --input-bg: #1a2639;
+  --link: #93c5fd;
+  --focus-ring: #60a5fa;
+  --accent-surface: #2b3651;
+  --accent-text: #c7d2fe;
+  --success: #6ee7b7;
+  --warning: #fbbf24;
 }
 
 * { box-sizing: border-box; }
@@ -37,10 +68,11 @@ body {
 
 .card,
 .program-sheet {
-  background: var(--card);
+  background: var(--surface);
   border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
 }
 
 .card { margin-bottom: 18px; }
@@ -69,12 +101,33 @@ body {
   align-items: flex-start;
 }
 
+.toolbar-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 14px;
+}
+
+
+.theme-controls {
+  display: grid;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.theme-label {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 h1,h2,h3,h4,p { margin-top: 0; }
 .subtitle,
 .section-note,
 .muted,
 .helper {
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .grid {
@@ -98,13 +151,20 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
-  border: 1px solid #cfd4dc;
+  border: 1px solid var(--border-strong);
   border-radius: 12px;
   padding: 12px;
   font-size: 14px;
-  background: #fff;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 textarea { resize: vertical; }
@@ -117,20 +177,29 @@ textarea { resize: vertical; }
 }
 
 button {
-  border: none;
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 11px 15px;
-  background: var(--btn);
-  color: #fff;
+  background: var(--primary);
+  color: var(--primary-foreground);
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
 }
 
-button:hover { opacity: 0.95; }
+button:hover { background: var(--primary-hover); }
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .copy-status {
@@ -140,11 +209,11 @@ button:disabled {
 }
 
 .copy-status[data-tone="success"] {
-  color: #065f46;
+  color: var(--success);
 }
 
 .copy-status[data-tone="warning"] {
-  color: #92400e;
+  color: var(--warning);
 }
 
 #editorList,
@@ -155,21 +224,20 @@ button:disabled {
 
 .editor-card,
 .exercise-card {
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .editor-card {
-  background: var(--soft);
+  background: var(--surface-alt);
 }
-
 
 .editor-section-label {
   margin: -2px 0 10px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -183,7 +251,7 @@ button:disabled {
 .preview-section + .preview-section {
   margin-top: 14px;
   padding-top: 8px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 
 .preview-section-header h3 {
@@ -211,7 +279,6 @@ button:disabled {
 
 .instructions-list li { margin-bottom: 5px; }
 
-
 .video-links {
   margin-top: 10px;
 }
@@ -222,7 +289,7 @@ button:disabled {
 }
 
 .video-links a {
-  color: #1d4ed8;
+  color: var(--link);
   font-weight: 700;
   text-decoration: underline;
 }
@@ -230,39 +297,39 @@ button:disabled {
 .video-disclaimer {
   margin: 2px 0 10px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .note-box {
   margin-top: 10px;
   padding: 10px 12px;
-  background: var(--soft);
+  background: var(--surface-alt);
   border-radius: 10px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
 }
 
 .program-header {
-  border-bottom: 2px solid var(--line);
+  border-bottom: 2px solid var(--border);
   padding-bottom: 14px;
   margin-bottom: 20px;
 }
 
 .intro-box {
-  background: var(--soft);
-  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
 }
 
 .empty {
-  color: var(--muted);
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .small-label {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -271,8 +338,8 @@ button:disabled {
 .raw-chip {
   display: inline-block;
   margin-top: 8px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--accent-surface);
+  color: var(--accent-text);
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 12px;
@@ -306,11 +373,14 @@ button:disabled {
   .editor-header {
     flex-direction: column;
   }
+  .toolbar-row {
+    justify-content: flex-start;
+  }
   .exercise-dose { white-space: normal; }
 }
 
 @media print {
-  body { background: #fff; }
+  body { background: #fff; color: #000; }
   .no-print { display: none !important; }
   .container {
     max-width: 100%;
@@ -328,6 +398,8 @@ button:disabled {
     min-height: auto;
     overflow: visible;
     position: static;
+    border: 0;
+    background: #fff;
   }
   .exercise-card {
     page-break-inside: avoid;

@@ -4,6 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HEP Builder Pro</title>
+  <script>
+    (function () {
+      var storageKey = 'theme-preference';
+      var defaultMode = 'system';
+      var mode = defaultMode;
+      try {
+        var stored = localStorage.getItem(storageKey);
+        if (stored === 'light' || stored === 'dark' || stored === 'system') mode = stored;
+      } catch (error) {
+        mode = defaultMode;
+      }
+
+      var supportsMatchMedia = typeof window.matchMedia === 'function';
+      var systemDark = supportsMatchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var resolvedTheme = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
+      document.documentElement.dataset.themeMode = mode;
+      document.documentElement.dataset.theme = resolvedTheme;
+      document.documentElement.style.colorScheme = resolvedTheme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -14,6 +34,17 @@
           <div>
             <h1>HEP Builder Pro</h1>
             <p class="subtitle">Paste rough clinician shorthand, generate a patient-ready program, then edit, email, or save as PDF.</p>
+          </div>
+        </div>
+
+        <div class="toolbar-row no-print">
+          <div class="theme-controls" role="group" aria-label="Theme selection">
+            <label for="themeMode" class="theme-label">Theme</label>
+            <select id="themeMode" aria-label="Select color theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
           </div>
         </div>
 
